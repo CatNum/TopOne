@@ -1,0 +1,57 @@
+name: Check Commit Author
+
+on: [push, pull_request]
+
+jobs:
+  check-author:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # 必须拉取历史记录，否则拿不到 commit 信息
+          fetch-depth: 0
+          # 本仓库若存在超长路径，Linux runner 全量 checkout 可能失败；本 job 只需 git log，sparse 仅拉 .github 即可
+          sparse-checkout: |
+            .github
+          sparse-checkout-cone-mode: true
+
+      - name: Verify Committer
+        run: |
+          # --- 配置你的精确信息 ---
+          EXPECTED_NAME="CatNum"
+          EXPECTED_EMAIL="yxl19991104@gmail.com"
+
+          # 获取最后一次提交的作者姓名和邮箱
+          # %an = Author Name, %ae = Author Email
+          ACTUAL_NAME=$(git log -1 --pretty=format:'%an')
+          ACTUAL_EMAIL=$(git log -1 --pretty=format:'%ae')
+
+          echo "🔍 正在校验提交信息..."
+          echo "实际作者: $ACTUAL_NAME"
+          echo "实际邮箱: $ACTUAL_EMAIL"
+
+          # 执行精确校验
+          FAILED=0
+
+          if [ "$ACTUAL_NAME" != "$EXPECTED_NAME" ]; then
+            echo "❌ 错误: 作者姓名不匹配！预期: $EXPECTED_NAME"
+            FAILED=1
+          fi
+
+          if [ "$ACTUAL_EMAIL" != "$EXPECTED_EMAIL" ]; then
+            echo "❌ 错误: 作者邮箱不匹配！预期: $EXPECTED_EMAIL"
+            FAILED=1
+          fi
+
+          if [ $FAILED -eq 1 ]; then
+            echo "------------------------------------------------"
+            echo "💡 请在本地执行以下命令修正后强推："
+            echo "git config user.name \"$EXPECTED_NAME\""
+            echo "git config user.email \"$EXPECTED_EMAIL\""
+            echo "git commit --amend --reset-author --no-edit"
+            echo "git push -f"
+            exit 1
+          fi
+
+          echo "✅ 校验通过：提交人信息合法。"

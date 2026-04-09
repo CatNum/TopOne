@@ -1,0 +1,45 @@
+# 将本仓库 .agent/skills/<子目录> 按「目标仓」分别同步（分仓：公开 / 团队私有等）。
+# 工作流：.github/workflows/sync-skills-to-upstream.yml
+# 本文件路径：.github/sync-skills-to-upstream/config.yaml
+#
+# version: 2
+# - 每个 targets[] 条目对应一个技能仓；各自 defaults / skills，互不影响。
+# - credential 仅允许 public | team，与工作流里两个 Secret 固定映射（勿写 token 字符串）。
+#
+# 规则（确定性）：
+# - 仅处理 .agent/skills/ 下「一级子目录」；忽略隐藏目录与文件。
+# - 若 skills.<目录名> 存在：仅当 push: true 时同步到该 target。
+# - 若 skills.<目录名> 不存在：沿用该 target 的 defaults.push。
+# - 某个 target 下没有任何选中目录时，该 target 不会进入本次 matrix（不跑空任务）。
+# - default_content_path（可选，文件级）：所有 target 的默认「目标仓内相对路径」。未写或空 = 同步到仓库根目录。
+# - targets[].content_path（可选）：覆盖 default_content_path；写空字符串 "" 表示强制同步到仓库根。
+#   最终每个技能同步到：repo/<content_path>/<技能名>/（content_path 为空时即 repo/<技能名>/）。
+
+version: 2
+
+default_content_path: skills
+
+targets:
+  # 当前仅一个仓：credential 选 public 或 team 均可，与工作流中已配置的 Secret 对应即可。
+  - id: public-skills
+    repo: CatNum/Fork-skills
+    branch: sync/dailystudy
+    credential: public
+    defaults:
+      push: true  # 默认
+    skills: {}
+
+  # 后续增加第二个仓时取消注释，并在仓库 Secrets 中配置 SKILLS_SYNC_TOKEN_TEAM。
+  # - id: team-skills
+  #   repo: your-org/team-skills
+  #   branch: sync/dailystudy
+  #   credential: team
+  #   # content_path: other/subdir   # 可选；省略则用文件顶部的 default_content_path
+  #   defaults:
+  #     push: false
+  #   skills:
+  #     # 默认不同步时：只写要进「团队私有技能仓」的目录（白名单）
+  #     skill-update-principles:
+  #       push: true
+  #     internal-runbook-skill:
+  #       push: true

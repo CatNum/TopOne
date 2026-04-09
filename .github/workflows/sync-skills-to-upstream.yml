@@ -1,0 +1,586 @@
+# 将 .agent/skills 按配置同步到多个「技能仓」（version 2：分仓 + 每仓独立 defaults/skills）。
+#
+# 所需 Secret（本仓库 Settings → Secrets）：
+#   SKILLS_SYNC_TOKEN_PUBLIC：对 credential: public 的目标 repo 具有 contents:write、pull_requests:write
+#   SKILLS_SYNC_TOKEN_TEAM：对 credential: team 的目标 repo 同上
+# 仅使用一种 credential 时，另一个 Secret 可不配置；若 matrix 用到某 credential 而对应 Secret 为空，任务会失败。
+#
+# 可选：GEMINI_API_KEY（Google AI Studio / Gemini API）。若配置，sync job 会用 npx @google/gemini-cli
+# 仅依据「目标技能仓」本次暂存区变更（git diff --cached：统计/文件列表/截断 diff）生成中文标题与正文（与 PR files changed 一致）。
+# 未配置或调用失败则沿用默认文案（默认文案会列出部分变更路径）。
+# Gemini 中文提示词模板：.github/sync-skills-to-upstream/gemini-pr-prompt.md（占位符 <<<SYNC_CONTEXT_JSON>>> / <<<TARGET_CHANGES>>>）。
+# 参考：https://github.com/google-gemini/gemini-cli
+#
+# 触发：push 到默认分支且变更涉及技能或本配置；也可 workflow_dispatch。
+#
+# 同步分支：每个 target 的 branch（默认 sync/dailystudy）；推送 --force-with-lease。
+# 目标仓子目录：见 .github/sync-skills-to-upstream/config.yaml 的 default_content_path / targets[].content_path。
+#
+# 本仓库若存在超长路径（如深层目录下的 .docx），在 Linux runner 上全量 checkout 可能报
+# “File name too long”。因此对本仓库使用 sparse-checkout，仅拉取 .github 与 .agent/skills。
+# 工作流设计说明（含 Mermaid）：.github/sync-skills-to-upstream/workflow-overview.md
+
+name: Sync skills to upstream repo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".agent/skills/**"
+      - ".github/sync-skills-to-upstream/**"
+      - ".github/workflows/sync-skills-to-upstream.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      has_targets: ${{ steps.plan.outputs.has_targets }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+            .agent/skills
+          sparse-checkout-cone-mode: true
+
+      - name: Build sync matrix from config
+        id: plan
+        run: |
+          set -euo pipefail
+          ruby <<'RUBY'
+          require "json"
+          require "yaml"
+
+          cfg_path = ".github/sync-skills-to-upstream/config.yaml"
+          abort "Missing #{cfg_path}" unless File.file?(cfg_path)
+
+          cfg = YAML.load_file(cfg_path)
+          ver = cfg["version"].to_i
+          abort "Unsupported config version: #{ver.inspect} (expected 2)" unless ver == 2
+
+          targets = cfg["targets"]
+          abort "targets must be a non-empty array" unless targets.is_a?(Array) && !targets.empty?
+
+          root = ".agent/skills"
+          abort "Missing #{root}" unless File.directory?(root)
+
+          def selected_skill_dirs(cfg_target, root)
+            default_push = cfg_target.dig("defaults", "push") == true
+            skills_cfg = cfg_target["skills"].is_a?(Hash) ? cfg_target["skills"] : {}
+            selected = []
+            Dir.children(root).sort.each do |name|
+              next if name.start_with?(".")
+              path = File.join(root, name)
+              next unless File.directory?(path)
+              push =
+                if skills_cfg.key?(name)
+                  skills_cfg[name].is_a?(Hash) && skills_cfg[name]["push"] == true
+                else
+                  default_push
+                end
+              selected << name if push
+            end
+            selected
+          end
+
+          def warn_configured_missing_dirs(cfg_target, target_id, root)
+            skills_cfg = cfg_target["skills"].is_a?(Hash) ? cfg_target["skills"] : {}
+            skills_cfg.each do |name, meta|
+              next unless meta.is_a?(Hash) && meta["push"] == true
+              path = File.join(root, name)
+              warn "sync-skills-to-upstream [#{target_id}]: push:true but missing directory: #{name}" unless File.directory?(path)
+            end
+          end
+
+          def normalize_content_path(raw, label)
+            cp = raw.to_s.strip.gsub(%r{\A/+|/+\z}, "")
+            abort "content_path must not contain '..' (#{label})" if cp.include?("..")
+            abort "content_path must be a relative path (#{label})" if cp.start_with?("/")
+            cp
+          end
+
+          global_cp = normalize_content_path(cfg["default_content_path"], "default_content_path")
+
+          matrix = []
+          targets.each do |t|
+            id = t["id"].to_s.strip
+            abort "target id missing" if id.empty?
+            repo = t["repo"].to_s.strip
+            abort "repo must be owner/name for target #{id}" if repo.empty? || !repo.include?("/")
+            branch = (t["branch"] || "sync/dailystudy").to_s.strip
+            abort "branch missing for target #{id}" if branch.empty?
+            cred = t["credential"].to_s.strip
+            abort "credential must be public or team for target #{id}" unless %w[public team].include?(cred)
+
+            cp =
+              if t.key?("content_path")
+                normalize_content_path(t["content_path"], "target #{id} content_path")
+              else
+                global_cp
+              end
+
+            warn_configured_missing_dirs(t, id, root)
+            sel = selected_skill_dirs(t, root)
+            next if sel.empty?
+
+            matrix << {
+              "id" => id,
+              "repo" => repo,
+              "branch" => branch,
+              "credential" => cred,
+              "content_path" => cp
+            }
+          end
+
+          File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |io|
+            io.puts "has_targets=#{matrix.empty? ? 'false' : 'true'}"
+            io.puts "matrix<<JSON"
+            io.puts JSON.generate(matrix)
+            io.puts "JSON"
+          end
+          RUBY
+
+  sync:
+    needs: plan
+    if: needs.plan.outputs.has_targets == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+            .agent/skills
+          sparse-checkout-cone-mode: true
+
+      - name: Resolve PAT and clone upstream
+        id: upstream
+        env:
+          TOKEN_PUBLIC: ${{ secrets.SKILLS_SYNC_TOKEN_PUBLIC }}
+          TOKEN_TEAM: ${{ secrets.SKILLS_SYNC_TOKEN_TEAM }}
+        run: |
+          set -euo pipefail
+          case "${{ matrix.credential }}" in
+            public) SYNC_TOKEN="${TOKEN_PUBLIC:-}" ;;
+            team) SYNC_TOKEN="${TOKEN_TEAM:-}" ;;
+            *) echo "::error::Unknown credential ${{ matrix.credential }}"; exit 1 ;;
+          esac
+          if [ -z "$SYNC_TOKEN" ]; then
+            echo "::error::Missing secret for credential ${{ matrix.credential }} (SKILLS_SYNC_TOKEN_PUBLIC or SKILLS_SYNC_TOKEN_TEAM)"
+            exit 1
+          fi
+          REPO="${{ matrix.repo }}"
+          DEST="${GITHUB_WORKSPACE}/skills-upstream"
+          rm -rf "$DEST"
+          git clone "https://x-access-token:${SYNC_TOKEN}@github.com/${REPO}.git" "$DEST"
+          echo "path=$DEST" >> "$GITHUB_OUTPUT"
+
+      - name: List skill directories for this target
+        id: select
+        env:
+          SYNC_TARGET_ID: ${{ matrix.id }}
+        run: |
+          set -euo pipefail
+          ruby <<'RUBY'
+          require "yaml"
+
+          cfg_path = ".github/sync-skills-to-upstream/config.yaml"
+          cfg = YAML.load_file(cfg_path)
+          abort "expected version 2" unless cfg["version"].to_i == 2
+
+          tid = ENV.fetch("SYNC_TARGET_ID").strip
+          t = cfg["targets"].find { |x| x["id"].to_s.strip == tid }
+          abort "target not found: #{tid}" unless t
+
+          root = ".agent/skills"
+          default_push = t.dig("defaults", "push") == true
+          skills_cfg = t["skills"].is_a?(Hash) ? t["skills"] : {}
+          selected = []
+          Dir.children(root).sort.each do |name|
+            next if name.start_with?(".")
+            path = File.join(root, name)
+            next unless File.directory?(path)
+            push =
+              if skills_cfg.key?(name)
+                skills_cfg[name].is_a?(Hash) && skills_cfg[name]["push"] == true
+              else
+                default_push
+              end
+            selected << name if push
+          end
+
+          list_file = File.join(ENV.fetch("RUNNER_TEMP"), "sync-skill-dirs-#{tid}.txt")
+          File.write(list_file, selected.join("\n").concat(selected.empty? ? "" : "\n"))
+
+          File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |io|
+            io.puts "skill_count=#{selected.size}"
+            io.puts "list_file=#{list_file}"
+          end
+          RUBY
+
+      - name: Rsync, push branch, open PR
+        env:
+          TOKEN_PUBLIC: ${{ secrets.SKILLS_SYNC_TOKEN_PUBLIC }}
+          TOKEN_TEAM: ${{ secrets.SKILLS_SYNC_TOKEN_TEAM }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          set -euo pipefail
+          case "${{ matrix.credential }}" in
+            public) export GH_TOKEN="${TOKEN_PUBLIC:-}" ;;
+            team) export GH_TOKEN="${TOKEN_TEAM:-}" ;;
+            *) exit 1 ;;
+          esac
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Missing token for gh"
+            exit 1
+          fi
+
+          BRANCH="${{ matrix.branch }}"
+          TARGET_REPO="${{ matrix.repo }}"
+          TARGET_ID="${{ matrix.id }}"
+          CONTENT_PATH="${{ matrix.content_path }}"
+          SRC_ROOT="${GITHUB_WORKSPACE}/.agent/skills"
+          UP="${{ steps.upstream.outputs.path }}"
+
+          if [ -n "$CONTENT_PATH" ]; then
+            DEST_BASE="$UP/$CONTENT_PATH"
+            echo "Sync destination base: ${CONTENT_PATH}/<skill>/ (under repo root)"
+          else
+            DEST_BASE="$UP"
+            echo "Sync destination base: repo root/<skill>/"
+          fi
+
+          cd "$UP"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin
+
+          DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+          if [ -z "$DEFAULT_BRANCH" ]; then
+            DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+          fi
+          if [ -z "$DEFAULT_BRANCH" ]; then
+            DEFAULT_BRANCH="main"
+          fi
+
+          git checkout "$DEFAULT_BRANCH"
+          git pull --ff-only origin "$DEFAULT_BRANCH"
+          git checkout -B "$BRANCH"
+
+          LIST_FILE="${{ steps.select.outputs.list_file }}"
+          while IFS= read -r name || [ -n "$name" ]; do
+            [ -z "$name" ] && continue
+            if [ ! -d "$SRC_ROOT/$name" ]; then
+              echo "Skip missing directory: $name"
+              continue
+            fi
+            mkdir -p "$DEST_BASE/$name"
+            rsync -a --delete "$SRC_ROOT/$name/" "$DEST_BASE/$name/"
+          done < "$LIST_FILE"
+
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes after rsync; nothing to push."
+            exit 0
+          fi
+
+          TMP="${RUNNER_TEMP}"
+
+          {
+            echo "=== 目标技能仓库：本次将提交的暂存区变更（与即将创建的 PR 一致）==="
+            echo ""
+            echo "[统计] git diff --cached --stat"
+            git -C "$UP" diff --cached --stat
+            echo ""
+            echo "[变更文件] git diff --cached --name-only"
+            git -C "$UP" diff --cached --name-only
+            echo ""
+            echo "[diff 正文片段，已截断]"
+            git -C "$UP" diff --cached | head -c 24000
+          } > "${TMP}/target-changes.txt" 2>/dev/null || true
+
+          : > "${TMP}/skill-names.txt"
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            if [ -n "${CONTENT_PATH:-}" ]; then
+              pre="${CONTENT_PATH}/"
+              case "$line" in
+                "${pre}"*)
+                  rest="${line#"${pre}"}"
+                  sk="${rest%%/*}"
+                  [ -n "$sk" ] && echo "$sk"
+                  ;;
+              esac
+            else
+              sk="${line%%/*}"
+              [ -n "$sk" ] && echo "$sk"
+            fi
+          done < <(git -C "$UP" diff --cached --name-only 2>/dev/null) | sort -u > "${TMP}/skill-names.txt"
+
+          # 仅凭 diff 中的 A/M 无法区分「新技能目录」与「已有技能里新增文件」；以 origin 默认分支上是否已有该技能树为准。
+          : > "${TMP}/staged-new.txt"
+          : > "${TMP}/staged-upd.txt"
+          while IFS= read -r sk || [ -n "$sk" ]; do
+            [ -z "$sk" ] && continue
+            rel="${CONTENT_PATH:+$CONTENT_PATH/}$sk"
+            if git -C "$UP" ls-tree "origin/${DEFAULT_BRANCH}" -- "$rel" 2>/dev/null | head -1 | grep -q .; then
+              echo "$sk" >> "${TMP}/staged-upd.txt"
+            else
+              echo "$sk" >> "${TMP}/staged-new.txt"
+            fi
+          done < "${TMP}/skill-names.txt"
+
+          # 优先显示 skill 中文名；未配置中文名时回退目录名（slug）。
+          resolve_skill_display_name() {
+            local sk="$1"
+            local f="${SRC_ROOT}/${sk}/SKILL.md"
+            local cn=""
+            if [ -f "$f" ]; then
+              cn=$(awk '
+                /\*\*名称（中文）\*\*[[:space:]]*：/ {
+                  sub(/^.*\*\*名称（中文）\*\*[[:space:]]*：[[:space:]]*/, "", $0)
+                  gsub(/[[:space:]]+$/, "", $0)
+                  print
+                  exit
+                }
+                /^名称（中文）[[:space:]]*：/ {
+                  sub(/^名称（中文）[[:space:]]*：[[:space:]]*/, "", $0)
+                  gsub(/[[:space:]]+$/, "", $0)
+                  print
+                  exit
+                }
+              ' "$f")
+            fi
+            if [ -n "${cn//[[:space:]]/}" ]; then
+              printf '%s' "$cn"
+            else
+              printf '%s' "$sk"
+            fi
+          }
+
+          build_display_file() {
+            local in_file="$1"
+            local out_file="$2"
+            : > "$out_file"
+            while IFS= read -r sk || [ -n "$sk" ]; do
+              [ -z "$sk" ] && continue
+              resolve_skill_display_name "$sk" >> "$out_file"
+              printf '\n' >> "$out_file"
+            done < "$in_file"
+          }
+
+          build_display_file "${TMP}/staged-new.txt" "${TMP}/staged-new-display.txt"
+          build_display_file "${TMP}/staged-upd.txt" "${TMP}/staged-upd-display.txt"
+
+          # paste -d 对多字节分隔符不安全；顿号用 awk 字面量输出。
+          join_skill_zh() { head -n 6 "$1" | awk 'BEGIN{OFS=""} {if(NR>1)printf "、"; printf "%s",$0} END{if(NR>0)print""}'; }
+          fmt_skill_line() {
+            local f="$1"
+            local n
+            n=$(wc -l < "$f" | tr -d ' ')
+            [ "$n" -eq 0 ] && return 0
+            local top
+            top=$(join_skill_zh "$f")
+            if [ "$n" -gt 6 ]; then
+              echo "${top} 等（共 ${n} 个）"
+            else
+              echo "$top"
+            fi
+          }
+
+          SKILL_COUNT=$(wc -l < "${TMP}/skill-names.txt" | tr -d ' ')
+          NEWC=$(wc -l < "${TMP}/staged-new.txt" | tr -d ' ')
+          UPDC=$(wc -l < "${TMP}/staged-upd.txt" | tr -d ' ')
+          if [ "${SKILL_COUNT}" -eq 0 ]; then
+            COMMIT_BODY=$(printf '%s\n' \
+              "- （未能从路径解析技能名，请查看 Files changed）" \
+              "- 未逐文件罗列路径；细节请见 PR 的 Files changed。")
+            COMMIT_SUBJECT="feat:技能同步（${TARGET_ID} → ${TARGET_REPO}）"
+          else
+            SUBJ_EXTRA=""
+            if [ "${NEWC}" -gt 0 ] && [ "${UPDC}" -gt 0 ]; then
+              SUBJ_EXTRA="（${NEWC} 个新增、${UPDC} 个更新）"
+            elif [ "${NEWC}" -gt 0 ]; then
+              SUBJ_EXTRA="（${NEWC} 个新增）"
+            elif [ "${UPDC}" -gt 0 ]; then
+              SUBJ_EXTRA="（${UPDC} 个更新）"
+            fi
+            COMMIT_SUBJECT="feat:技能同步（${TARGET_ID} → ${TARGET_REPO}）${SUBJ_EXTRA}"
+            parts=()
+            if [ "${NEWC}" -gt 0 ]; then
+              parts+=("- 新增技能（目标仓默认分支此前无该目录）：$(fmt_skill_line "${TMP}/staged-new-display.txt")")
+            fi
+            if [ "${UPDC}" -gt 0 ]; then
+              parts+=("- 更新技能（目标仓默认分支已有该目录）：$(fmt_skill_line "${TMP}/staged-upd-display.txt")")
+            fi
+            if [ "${#parts[@]}" -eq 0 ]; then
+              parts+=("- （未能区分新增/更新，请查看 Files changed）")
+            fi
+            parts+=("- 未逐文件罗列路径；细节请见 PR 的 Files changed。")
+            COMMIT_BODY=$(printf '%s\n' "${parts[@]}")
+          fi
+          PR_TITLE="$COMMIT_SUBJECT"
+          PR_BODY="$COMMIT_BODY"
+
+          MAPNEW=$(jq -Rs 'split("\n")|map(select(length>0))' < "${TMP}/staged-new.txt")
+          MAPUPD=$(jq -Rs 'split("\n")|map(select(length>0))' < "${TMP}/staged-upd.txt")
+          MAPNEW_DISPLAY=$(jq -Rs 'split("\n")|map(select(length>0))' < "${TMP}/staged-new-display.txt")
+          MAPUPD_DISPLAY=$(jq -Rs 'split("\n")|map(select(length>0))' < "${TMP}/staged-upd-display.txt")
+          export SYNC_CONTEXT_JSON
+          SYNC_CONTEXT_JSON=$(jq -n \
+            --arg tid "$TARGET_ID" \
+            --arg tr "$TARGET_REPO" \
+            --arg cp "${CONTENT_PATH:-}" \
+            --argjson ns "$MAPNEW" \
+            --argjson us "$MAPUPD" \
+            --argjson nd "$MAPNEW_DISPLAY" \
+            --argjson ud "$MAPUPD_DISPLAY" \
+            '{target_id:$tid,target_repo:$tr,content_path:$cp,staged_new_slugs:$ns,staged_updated_slugs:$us,staged_new_display_names:$nd,staged_updated_display_names:$ud}')
+
+          rm -f "${TMP}/gemini-meta.json"
+          if [ -n "${GEMINI_API_KEY:-}" ]; then
+            echo "GEMINI_API_KEY is set; generating commit/PR text via @google/gemini-cli (headless) ..."
+            ruby <<'RUBY' || true
+          require "json"
+          require "open3"
+          require "pathname"
+
+          tmp = Pathname(ENV.fetch("RUNNER_TEMP"))
+          exit 0 if ENV["GEMINI_API_KEY"].to_s.strip.empty?
+
+          target_path = tmp / "target-changes.txt"
+          exit 0 unless target_path.file?
+
+          target_text = target_path.read(encoding: "UTF-8", invalid: :replace, replace: "?")
+          exit 0 if target_text.strip.empty?
+
+          target_text = target_text[0, 20_000] + "\n...[truncated]" if target_text.length > 20_000
+
+          ctx = ENV.fetch("SYNC_CONTEXT_JSON", "{}")
+
+          ws = Pathname.new(ENV.fetch("GITHUB_WORKSPACE"))
+          template_path = ws / ".github" / "sync-skills-to-upstream" / "gemini-pr-prompt.md"
+          unless template_path.file?
+            warn "sync-skills-to-upstream: missing prompt template #{template_path}"
+            exit 0
+          end
+
+          tpl = template_path.read(encoding: "UTF-8", invalid: :replace, replace: "?")
+          unless tpl.include?("<<<SYNC_CONTEXT_JSON>>>") && tpl.include?("<<<TARGET_CHANGES>>>")
+            warn "sync-skills-to-upstream: prompt template missing required placeholders"
+            exit 0
+          end
+
+          instructions = tpl
+            .sub("<<<SYNC_CONTEXT_JSON>>>", ctx)
+            .sub("<<<TARGET_CHANGES>>>", target_text)
+          instructions = instructions[0, 28_000] if instructions.length > 28_000
+
+          cmd = [
+            "npx", "-y", "@google/gemini-cli@latest",
+            "--output-format", "json",
+            "-p", instructions
+          ]
+          begin
+            stdout_str, stderr_str, status = Open3.capture3(
+              ENV.to_h,
+              *cmd,
+              chdir: ENV.fetch("GITHUB_WORKSPACE", ".")
+            )
+          rescue StandardError => e
+            warn "gemini-cli error: #{e}"
+            exit 0
+          end
+
+          unless status.success?
+            warn stderr_str.to_s
+            warn stdout_str.to_s if stderr_str.to_s.strip.empty?
+            exit 0
+          end
+
+          begin
+            outer = JSON.parse(stdout_str)
+          rescue JSON::ParserError
+            exit 0
+          end
+
+          resp = outer["response"].to_s.strip
+          exit 0 if resp.empty?
+
+          if resp.start_with?("```")
+            lines = resp.lines
+            lines.shift if lines.first&.start_with?("```")
+            lines.pop while lines.last&.strip&.start_with?("```")
+            resp = lines.join.strip
+          end
+
+          begin
+            meta = JSON.parse(resp)
+          rescue JSON::ParserError
+            exit 0
+          end
+
+          keys = %w[commit_subject commit_body pr_title pr_body]
+          exit 0 unless keys.all? { |k| meta[k].is_a?(String) }
+
+          (tmp / "gemini-meta.json").write(
+            JSON.generate(keys.to_h { |k| [k, meta[k]] }),
+            mode: "w",
+            encoding: "UTF-8"
+          )
+          RUBY
+            if [ -f "${TMP}/gemini-meta.json" ]; then
+              CS=$(jq -r '.commit_subject // empty' "${TMP}/gemini-meta.json")
+              CB=$(jq -r '.commit_body // empty' "${TMP}/gemini-meta.json")
+              PT=$(jq -r '.pr_title // empty' "${TMP}/gemini-meta.json")
+              PB=$(jq -r '.pr_body // empty' "${TMP}/gemini-meta.json")
+              if [ -n "$CS" ]; then COMMIT_SUBJECT=$(printf '%s' "$CS" | head -n 1); fi
+              if [ -n "$CB" ]; then COMMIT_BODY="$CB"; fi
+              if [ -n "$PT" ]; then PR_TITLE=$(printf '%s' "$PT" | head -n 1); fi
+              if [ -n "$PB" ]; then PR_BODY="$PB"; fi
+            else
+              echo "Gemini metadata not produced; using default commit/PR text."
+            fi
+          else
+            echo "GEMINI_API_KEY not set; using default commit/PR text."
+          fi
+
+          PR_FOOTER=$(printf '\n\n---\n\n**同步目标：** `%s` → `%s`\n**工作流运行：** [run %s](%s/%s/actions/runs/%s)\n**源仓库提交：** [`%s`@%s](https://github.com/%s/commit/%s)\n' \
+            "$TARGET_ID" "$TARGET_REPO" "${{ github.run_id }}" "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" "${{ github.repository }}" "${{ github.sha }}" "${{ github.repository }}" "${{ github.sha }}")
+          printf '%s%s' "$PR_BODY" "$PR_FOOTER" > "${TMP}/pr-body.md"
+
+          {
+            printf '%s\n\n' "$COMMIT_SUBJECT"
+            if [ -n "$COMMIT_BODY" ]; then
+              printf '%s\n' "$COMMIT_BODY"
+            fi
+          } > "${TMP}/commit-msg.txt"
+          git commit -F "${TMP}/commit-msg.txt"
+
+          git fetch origin "refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}" 2>/dev/null || true
+          git push origin "HEAD:refs/heads/${BRANCH}" --force-with-lease
+
+          OPEN=$(gh pr list --repo "$TARGET_REPO" --head "$BRANCH" --state open --json number -q 'length')
+          if [ "$OPEN" = "0" ]; then
+            gh pr create \
+              --repo "$TARGET_REPO" \
+              --base "$DEFAULT_BRANCH" \
+              --head "$BRANCH" \
+              --title "$PR_TITLE" \
+              --body-file "${TMP}/pr-body.md"
+          else
+            echo "Open PR already exists for ${BRANCH}; branch updated."
+          fi
