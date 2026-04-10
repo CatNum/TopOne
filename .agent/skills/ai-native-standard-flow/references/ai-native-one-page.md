@@ -57,6 +57,8 @@ flowchart LR
 ```text
 docs/requirements/
 docs/design/
+docs/prototype/
+docs/ui/
 docs/glossary/
 docs/decisions/
 docs/integration/  # 微服务场景可选
@@ -98,6 +100,21 @@ standards/review-checklist.md
 3. 实现：AI 辅助编码 + 人工关键决策  
 4. 验证：本地先过 Lint/Type/Test  
 5. 提交：发起 PR 并附验证证据  
+
+## 自动化执行（速查）
+
+- 规划模式（仅计划，不落地）：
+  - `node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode plan`
+- 安全落地（默认建议）：
+  - `node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode apply-safe`
+- 策略开关（可在 `ai-native-automation.config.json` 配置）：
+  - `executionPolicy.planWritesReports`：`plan` 模式是否写报告
+  - `executionPolicy.blockOnRequiredManual`：是否对 required 的 `manual` 直接阻断
+- 执行后读取：
+  - 人类可读：`ai-native-compliance.md`（中文图标状态）
+  - 机器可读：`ai-native-compliance.json`（英文枚举状态）
+- 前端资料检查：自动检查 `docs/prototype/` 与 `docs/ui/` 是否存在。
+- 注意：`apply-safe` 自动新增的模板文件仅供参考，必须人工完善内容后再进入后续开发。
 
 ## Mermaid 工作流
 

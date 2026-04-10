@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "1.1",
+  "projectType": "monolith",
+  "executionPolicy": {
+    "defaultMode": "apply-safe",
+    "allowSafePatch": true,
+    "allowUnsafeOverwrite": false,
+    "planWritesReports": true,
+    "blockOnRequiredManual": false
+  },
+  "outputs": {
+    "complianceMarkdownFile": "ai-native-compliance.md",
+    "complianceJsonFile": "ai-native-compliance.json"
+  },
+  "requiredPaths": [
+    "docs/requirements/",
+    "docs/design/",
+    "docs/prototype/",
+    "docs/ui/",
+    "docs/glossary/",
+    "docs/decisions/",
+    "openspec/",
+    "AGENTS.md",
+    ".agent/skills/",
+    "standards/",
+    ".github/workflows/"
+  ],
+  "conditionalPaths": [
+    {
+      "path": "docs/integration/",
+      "when": "projectType == microservice",
+      "required": true
+    }
+  ],
+  "changeRules": {
+    "safeAdd": [
+      "docs/requirements/README.md",
+      "docs/design/README.md",
+      "docs/prototype/README.md",
+      "docs/ui/README.md",
+      "docs/glossary/README.md",
+      "docs/decisions/README.md",
+      "standards/coding-standards.md",
+      "standards/project-structure-standards.md",
+      "standards/markdown-standards.md",
+      "standards/testing-standards.md",
+      "standards/review-checklist.md"
+    ],
+    "safePatch": [
+      "AGENTS.md"
+    ],
+    "manualOnly": [
+      "MCP",
+      "AI 编码助手",
+      "任务管理",
+      "可观测性"
+    ]
+  },
+  "adapters": {
+    "skillRegistry": { "enabled": true },
+    "mcp": { "enabled": true, "mode": "manual" },
+    "openSpec": { "enabled": true },
+    "openSkills": { "enabled": true },
+    "agentsMd": { "enabled": true },
+    "qualityToolchain": { "enabled": true },
+    "projectStandards": { "enabled": true }
+  },
+  "toolChecks": {
+    "skill": {
+      "requiredLevel": "required"
+    },
+    "mcp": {
+      "requiredLevel": "required",
+      "mode": "manual"
+    },
+    "openSpec": {
+      "requiredLevel": "required"
+    },
+    "openSkills": {
+      "requiredLevel": "required",
+      "mode": "manual"
+    },
+    "agentsMd": {
+      "requiredLevel": "required"
+    },
+    "aiCodingAssistant": {
+      "requiredLevel": "required",
+      "mode": "manual"
+    },
+    "versionReview": {
+      "requiredLevel": "required"
+    },
+    "lint": {
+      "requiredLevel": "required"
+    },
+    "typeCheck": {
+      "requiredLevel": "required"
+    },
+    "unitTest": {
+      "requiredLevel": "required"
+    },
+    "ciCd": {
+      "requiredLevel": "required"
+    },
+    "prototypeMaterial": {
+      "requiredLevel": "recommended"
+    },
+    "uiMaterial": {
+      "requiredLevel": "recommended"
+    },
+    "taskManagement": {
+      "requiredLevel": "recommended",
+      "mode": "manual"
+    },
+    "observability": {
+      "requiredLevel": "recommended",
+      "mode": "manual"
+    }
+  }
+}

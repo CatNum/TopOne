@@ -76,6 +76,8 @@ flowchart TD
 ├── docs/
 │   ├── requirements/                  # 需求背景与需求分析
 │   ├── design/                        # 技术方案与架构设计
+│   ├── prototype/                     # 原型文档与交互说明（低/高保真）
+│   ├── ui/                            # UI 规范（页面清单、组件规范、设计令牌）
 │   ├── glossary/                      # 业务术语知识库
 │   ├── decisions/                     # 关键决策留痕
 │   └── integration/                   # 微服务跨服务交互文档（非微服务可缺省）
@@ -93,7 +95,7 @@ flowchart TD
 
 ### 强制校验规则
 
-- `必须存在`：`docs/requirements/`、`docs/design/`、`docs/glossary/`、`docs/decisions/`、`openspec/`、`AGENTS.md`、`.agent/skills/`、`standards/`、`.github/workflows/`。
+- `必须存在`：`docs/requirements/`、`docs/design/`、`docs/prototype/`、`docs/ui/`、`docs/glossary/`、`docs/decisions/`、`openspec/`、`AGENTS.md`、`.agent/skills/`、`standards/`、`.github/workflows/`。
 - `标准文件必须存在`：`standards/coding-standards.md`、`standards/project-structure-standards.md`、`standards/markdown-standards.md`、`standards/testing-standards.md`、`standards/review-checklist.md`。
 - `条件存在`：微服务场景必须存在 `docs/integration/`；非微服务场景可缺省，但需在文档中声明“非微服务”。
 - `阻断规则`：任一必须项缺失时，当前话题只允许补齐结构，不允许进入实现。
@@ -158,8 +160,80 @@ flowchart LR
 - 当阻断项未使用但允许通过时，`adoption_status` 设为 `waived`，且必须填写 `exception_reason`。
 - 若本次执行了检查但未更新 `ai-native-compliance.md`，视为流程未完成。
 
+## 自动化自定义设置（新增）
+
+### 目标
+
+- 将“通用必需项 + 项目可定制项”合并为可执行流程，避免仅靠人工清单驱动。
+- 通过配置化方式兼容不同项目规范，同时保留统一治理口径。
+
+### 自动化文件与职责
+
+- 默认配置模板：`.agent/skills/ai-native-standard-flow/references/automation-config.template.json`
+- 可选项目覆盖配置：`ai-native-automation.config.json`（仓库根目录）
+- 自动检查脚本：`.agent/skills/ai-native-standard-flow/scripts/check-compliance.js`
+- 引导模板目录：`.agent/skills/ai-native-standard-flow/references/bootstrap-templates/`
+- 合规输出文件：`ai-native-compliance.md` + `ai-native-compliance.json`（仓库根目录，自动生成/更新）
+
+### 执行方式
+
+```bash
+node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode apply-safe
+```
+
+可选参数：
+- `--config <path>`：指定额外配置文件；用于临时覆盖默认规则。
+- `--mode plan`：仅输出检查与变更计划（dry-run）。
+- `--mode apply-safe`：执行安全落地（新增/补齐、受保护补丁）。
+- `--dry-run`：等价于 `--mode plan`。
+- `--apply`：等价于 `--mode apply-safe`。
+- `executionPolicy.planWritesReports`：控制 `plan` 模式是否写入报告文件（默认 `true`）。
+
+### 自动化流程（Mermaid）
+
+```mermaid
+flowchart TD
+    A[加载默认配置模板] --> B{仓库根目录存在覆盖配置?}
+    B -->|是| C[合并配置]
+    B -->|否| D[使用默认配置]
+    C --> E[执行适配器检查]
+    D --> E
+    E --> F[生成变更计划 safe_add_safe_patch_manual]
+    F --> G{mode 是否 apply-safe}
+    G -->|是| H[执行安全落地变更]
+    G -->|否| I[仅输出计划不落地]
+    H --> J[复检并生成 md_json 双报告]
+    I --> J
+    J --> K[提示新增模板需人工完善]
+    K --> L{required 项是否 fail?}
+    L -->|是| M[返回非 0 退出码 阻断后续流程]
+    L -->|否| N[返回 0 退出码 允许继续]
+```
+
+### 状态语义（用于自动化）
+
+- `pass`：自动检查通过，或人工确认通过。
+- `fail`：自动检查失败，且为必须项时阻断流程。
+- `manual`：需人工补充证据和确认（如 MCP、AI 编码助手）。
+- `waived`：允许豁免（仅在规则允许下），必须填写 `exception_reason`。
+- `unknown`：尚未完成判断。
+- 人类可读表格必须使用中文图标状态：`✅ 通过 | ❌ 不通过 | 🟡 人工确认 | 🟣 豁免 | ⚪ 未知`。
+- 机器可读 YAML/JSON 必须使用英文枚举：`pass/fail/manual/waived/unknown`。
+- 当必须项出现 `manual` 且尚未人工确认时，总体状态应标记为 `unknown`，禁止误判为 `pass`。
+
+### 团队接入约束
+
+- 不允许直接改模板文件结构；项目差异必须通过 `ai-native-automation.config.json` 覆盖。
+- 对高风险模块（支付/权限/一致性）即使自动检查通过，也必须人工拍板。
+- 自动化只负责“检查与落库”，不替代评审与验收。
+- 自动化接入覆盖以下对象：`skill`、`MCP`、`OpenSpec`、`OpenSkills`、`AGENTS.md`、`质量链路`、`标准目录`。
+- 无法稳定自动判断的对象统一落入 `manual`，由人类补证据并确认。
+- `apply-safe` 新增的引导模板文件仅用于起步，占位内容必须由人类人工完善后才能进入正式执行。
+
 ## 参考文档
 
 - 主流程文档：`.agent/skills/ai-native-standard-flow/references/ai-native-tools-and-config.md`
 - 人类速查文档：`.agent/skills/ai-native-standard-flow/references/ai-native-one-page.md`
 - 合规模板：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`
+- 自动化配置模板：`.agent/skills/ai-native-standard-flow/references/automation-config.template.json`
+- 自动化引导模板：`.agent/skills/ai-native-standard-flow/references/bootstrap-templates/`

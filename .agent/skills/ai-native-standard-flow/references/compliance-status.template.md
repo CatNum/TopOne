@@ -6,6 +6,7 @@
 ## 人类速览
 
 - 总体状态：`✅ 通过 | ❌ 不通过`
+- 采用状态图例：`✅ 通过 | ❌ 不通过 | 🟡 人工确认 | 🟣 豁免 | ⚪ 未知`
 - 检查人：
 - 备注：
 
@@ -14,21 +15,24 @@
 | 检查项 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |
 |---|---|---|---|---|---|---|
 | **AI 原生协作工具（必须）** |  |  |  |  |  |  |
-| skill（.agent/skills/） | unknown |  |  |  |  |  |
-| MCP | unknown |  |  |  |  |  |
-| OpenSpec | unknown |  |  |  |  |  |
-| OpenSkills | unknown |  |  |  |  |  |
-| AGENTS.md | unknown |  |  |  |  |  |
+| skill（.agent/skills/） | ⚪ 未知 |  |  |  |  |  |
+| MCP | ⚪ 未知 |  |  |  |  |  |
+| OpenSpec | ⚪ 未知 |  |  |  |  |  |
+| OpenSkills | ⚪ 未知 |  |  |  |  |  |
+| AGENTS.md | ⚪ 未知 |  |  |  |  |  |
 | **工程基础工具（必须）** |  |  |  |  |  |  |
-| AI 编码助手 | manual |  |  |  |  |  |
-| 版本与评审 | unknown |  |  |  |  |  |
-| 质量工程 / Lint | unknown |  |  |  |  |  |
-| 质量工程 / Type Check | unknown |  |  |  |  |  |
-| 质量工程 / Unit Test | unknown |  |  |  |  |  |
-| CI/CD | unknown |  |  |  |  |  |
+| AI 编码助手 | 🟡 人工确认 |  |  |  |  |  |
+| 版本与评审 | ⚪ 未知 |  |  |  |  |  |
+| 质量工程 / Lint | ⚪ 未知 |  |  |  |  |  |
+| 质量工程 / Type Check | ⚪ 未知 |  |  |  |  |  |
+| 质量工程 / Unit Test | ⚪ 未知 |  |  |  |  |  |
+| CI/CD | ⚪ 未知 |  |  |  |  |  |
+| **前端交付资料（建议）** |  |  |  |  |  |  |
+| 原型资料（docs/prototype/） | ⚪ 未知 |  |  |  |  |  |
+| UI 规范资料（docs/ui/） | ⚪ 未知 |  |  |  |  |  |
 | **工程基础工具（建议）** |  |  |  |  |  |  |
-| 任务管理 | manual |  |  |  |  |  |
-| 可观测性 | unknown |  |  |  |  |  |
+| 任务管理 | 🟡 人工确认 |  |  |  |  |  |
+| 可观测性 | ⚪ 未知 |  |  |  |  |  |
 
 ## 机器可读
 
@@ -130,6 +134,24 @@ items:
   - item: "CI/CD"
     category: "工程基础工具"
     required_level: "required"
+    adoption_status: "unknown"
+    exception_reason: ""
+    evidence: []
+    owner: ""
+    next_action: ""
+    updated_at: ""
+  - item: "原型资料（docs/prototype/）"
+    category: "前端交付资料"
+    required_level: "recommended"
+    adoption_status: "unknown"
+    exception_reason: ""
+    evidence: []
+    owner: ""
+    next_action: ""
+    updated_at: ""
+  - item: "UI 规范资料（docs/ui/）"
+    category: "前端交付资料"
+    required_level: "recommended"
     adoption_status: "unknown"
     exception_reason: ""
     evidence: []
