@@ -93,9 +93,9 @@ flowchart TD
 ├── .agent/skills/             # 团队 skill 目录（按工具链约定维护）
 │   └── ai-native-standard-flow/
 │       ├── SKILL.md
-│       ├── ai-native-one-page.md
 │       └── references/
-│           └── ai-native-tools-and-config.md
+│           ├── ai-native-tools-and-config.md
+│           └── ai-native-one-page.md
 ├── standards/
 │   ├── coding-standards.md    # 代码规范示例
 │   ├── project-structure-standards.md # 项目目录规范标准文件

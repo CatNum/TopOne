@@ -147,4 +147,4 @@ flowchart LR
 ## 参考文档
 
 - 主流程文档：`.agent/skills/ai-native-standard-flow/references/ai-native-tools-and-config.md`
-- 人类速查文档：`.agent/skills/ai-native-standard-flow/ai-native-one-page.md`
+- 人类速查文档：`.agent/skills/ai-native-standard-flow/references/ai-native-one-page.md`
