@@ -23,62 +23,56 @@ Usage notes:
 <available_skills>
 
 <skill>
-<name>openspec-new-change</name>
-<description>Start a new OpenSpec change using the experimental artifact workflow. Use when creating a new feature, fix, or modification with a structured step-by-step approach.</description>
+<name>ai-interaction-evolution-tracker</name>
+<description>Monitor each user-AI interaction and distill AI Native workflow evolution with evidence. Use when users discuss process, decision rationale, experiment outcomes, retrospectives, or workflow changes.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-continue-change</name>
-<description>Continue working on an OpenSpec change by creating the next artifact. Use to progress a change or create the next artifact.</description>
+<name>ai-native-standard-flow</name>
+<description>Execute AI Native standard collaboration workflow for zero-code development. Use when defining, advancing, or reviewing human-AI delivery flow, required docs/standards/tooling checklist, and topic-by-topic execution with AI-driven progress.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-apply-change</name>
-<description>Implement tasks from an OpenSpec change. Use when starting implementation, continuing implementation, or working through tasks.</description>
+<name>algorithmic-art</name>
+<description>Creating algorithmic art using p5.js with seeded randomness and interactive parameter exploration. Use this when users request creating art using code, generative art, algorithmic art, flow fields, or particle systems. Create original algorithmic art rather than copying existing artists' work to avoid copyright violations.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-verify-change</name>
-<description>Verify implementation matches change artifacts. Use to validate implementation completeness, correctness, and coherence before archiving.</description>
+<name>brand-guidelines</name>
+<description>Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit from having Anthropic's look-and-feel. Use it when brand colors or style guidelines, visual formatting, or company design standards apply.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-archive-change</name>
-<description>Archive a completed change in the experimental workflow. Use when finalizing and archiving a change after implementation is complete.</description>
+<name>canvas-design</name>
+<description>Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations.</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-bulk-archive-change</name>
-<description>Archive multiple completed changes at once. Use when archiving several parallel changes.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>openspec-explore</name>
-<description>Enter explore mode as a thinking partner for exploring ideas, investigating problems, and clarifying requirements.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>doc-coauthoring</name>
-<description>Guide users through a structured workflow for co-authoring documentation, proposals, and technical specs.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>md-formatting</name>
-<description>Format and normalize Markdown documents for consistent readability and scannable key points.</description>
+<name>claude-api</name>
+<description>"Build apps with the Claude API or Anthropic SDK. TRIGGER when: code imports `anthropic`/`@anthropic-ai/sdk`/`claude_agent_sdk`, or user asks to use Claude API, Anthropic SDKs, or Agent SDK. DO NOT TRIGGER when: code imports `openai`/other AI SDK, general programming, or ML/data-science tasks."</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>design-changelog-maintainer</name>
-<description>Maintain per-project design.md and changelog.md artifacts across project scopes.</description>
+<description>Maintain per-project design.md, changelog.md, and resume-interview.md across multi-project repositories using explicit scope config in DESIGN-CHANGELOG.yml. Use this skill whenever users mention updating design docs, changelog, ADR, architecture notes, interview prep, resume bullets, or post-change documentation in monorepo/multi-scope codebases, even if they only describe changes in natural language.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>doc-coauthoring</name>
+<description>Guide users through a structured workflow for co-authoring documentation. Use when user wants to write documentation, proposals, technical specs, decision docs, or similar structured content. This workflow helps users efficiently transfer context, refine content through iteration, and verify the doc works for readers. Trigger when user mentions writing docs, creating proposals, drafting specs, or similar documentation tasks.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>docx</name>
+<description>"Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a 'report', 'memo', 'letter', 'template', or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation."</description>
 <location>project</location>
 </skill>
 
@@ -95,44 +89,50 @@ Usage notes:
 </skill>
 
 <skill>
-<name>web-artifacts-builder</name>
-<description>Build elaborate multi-component web artifacts using React, Tailwind CSS, and shadcn/ui for complex UIs.</description>
+<name>mcp-builder</name>
+<description>Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services, whether in Python (FastMCP) or Node/TypeScript (MCP SDK).</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>webapp-testing</name>
-<description>Use Playwright-based workflows to test and verify local web application behavior.</description>
+<name>md-formatting</name>
+<description>Format and normalize Markdown (.md) documents for consistent readability and scannable key points. Use when the user creates a new Markdown file or updates an existing one, and wants the result structured for later reading and quick extraction of重点.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>pdf</name>
+<description>Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>pptx</name>
+<description>"Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes: creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions \"deck,\" \"slides,\" \"presentation,\" or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill."</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>skill-creator</name>
-<description>Create new skills, improve existing skills, and measure skill performance.</description>
+<description>Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.</description>
 <location>project</location>
 </skill>
 
 <skill>
 <name>skill-update-assistant</name>
-<description>Audit and refine proposed skill changes against iteration standards and structural rules.</description>
+<description>>-</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-ff-change</name>
-<description>Fast-forward through OpenSpec artifact creation when you want all artifacts quickly.</description>
+<name>slack-gif-creator</name>
+<description>Knowledge and utilities for creating animated GIFs optimized for Slack. Provides constraints, validation tools, and animation concepts. Use when users request animated GIFs for Slack like "make me a GIF of X doing Y for Slack."</description>
 <location>project</location>
 </skill>
 
 <skill>
-<name>openspec-sync-specs</name>
-<description>Sync delta specs from a change back to main specs without archiving the change.</description>
-<location>project</location>
-</skill>
-
-<skill>
-<name>openspec-onboard</name>
-<description>Guided onboarding for OpenSpec with a narrated end-to-end workflow cycle.</description>
+<name>template</name>
+<description>Replace with description of the skill and when Claude should use it.</description>
 <location>project</location>
 </skill>
 
@@ -143,9 +143,27 @@ Usage notes:
 </skill>
 
 <skill>
-<name>babysit</name>
-<description>Keep a PR merge-ready by triaging comments, resolving clear conflicts, and fixing CI in a loop.</description>
-<location>global</location>
+<name>transcript-refine</name>
+<description>Refine video/live course transcripts into structured study materials. Use when the user has a long video course to learn from, needs to skip known content, and wants maximum learning efficiency. Deliver reading-optimized text (default) and/or video-spoken script variant when requested. Output is for first-time study (not review).</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>web-artifacts-builder</name>
+<description>Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>webapp-testing</name>
+<description>Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.</description>
+<location>project</location>
+</skill>
+
+<skill>
+<name>xlsx</name>
+<description>"Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user wants to: open, read, edit, or fix an existing .xlsx, .xlsm, .csv, or .tsv file (e.g., adding columns, computing formulas, formatting, charting, cleaning messy data); create a new spreadsheet from scratch or from other data sources; or convert between tabular file formats. Trigger especially when the user references a spreadsheet file by name or path — even casually (like \"the xlsx in my downloads\") — and wants something done to it or produced from it. Also trigger for cleaning or restructuring messy tabular data files (malformed rows, misplaced headers, junk data) into proper spreadsheets. The deliverable must be a spreadsheet file. Do NOT trigger when the primary deliverable is a Word document, HTML report, standalone Python script, database pipeline, or Google Sheets API integration, even if tabular data is involved."</description>
+<location>project</location>
 </skill>
 
 </available_skills>

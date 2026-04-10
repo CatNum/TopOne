@@ -29,6 +29,11 @@
 - `risk`
 - `next`
 
+当记录触发“稳定可复用优化”并已落地到流程 skill 时，必须额外更新 changelog：
+- 文件：`.agent/skills/ai-native-standard-flow/changelog.md`
+- 规则：每次优化都要追加一条记录，禁止只在对话里说明。
+- 最小字段：`背景`、`动作`、`结果`、`影响`
+
 ## 常见误用
 
 - 把闲聊或状态同步也写入记录（应跳过无价值交互）。
@@ -36,8 +41,10 @@
 - 一条记录混入多个决策（导致后续无法比较效果）。
 - `next` 写成长期愿景而不是可验证动作。
 - 未执行也写成“已验证结论”（应标记 `not validated`）。
+- 已更新流程 skill 但未新增对应 changelog 文件。
 
 ## 相关文件
 
 - 核心规则：`SKILL.md`
 - 填写示例：`examples.md`
+- 标准流程 skill：`.agent/skills/ai-native-standard-flow/SKILL.md`
