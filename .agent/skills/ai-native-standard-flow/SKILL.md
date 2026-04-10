@@ -45,22 +45,27 @@ flowchart TD
 
 ## 工具清单（必须具备）
 
-### AI 原生协作工具
+### AI 原生协作工具（必须，阻断）
 
-- `skill`
-- `MCP`
-- `OpenSpec`
-- `OpenSkills`
-- `AGENTS.md`
+- `skill`：存在 `.agent/skills/` 目录，且至少包含一个有效 `SKILL.md`。
+- `MCP`：存在 MCP 相关配置或连接定义；无法静态判断时记为 `manual`。
+- `OpenSpec`：存在 `openspec/` 目录或可核对的 OpenSpec 规范结构。
+- `OpenSkills`：存在 OpenSkills 使用痕迹（如 `npx openskills` 流程、同步结果或技能元数据）。
+- `AGENTS.md`：文件存在，且包含可核对的 `<available_skills>` 区块。
 
-### 工程基础工具
+### 工程基础工具（必须，阻断）
 
-- AI 编码助手（如 Cursor / Copilot / Claude Code）
-- 版本与评审（Git + GitHub/GitLab）
-- 任务管理（Issues/Jira/Linear）
-- 质量工具（Lint / Type Check / Unit Test）
-- CI/CD（GitHub Actions / GitLab CI）
-- 可观测性（日志 / 指标 / 错误追踪）
+- `AI 编码助手`：有可核对使用证据（工具配置、工作流约定或执行记录）；无法静态判断时记为 `manual`。
+- `版本与评审`：项目为 Git 仓库，并有可核对的评审流程痕迹（如 PR/评审约定）。
+- `质量工程 / Lint`：存在 lint 配置与可执行命令。
+- `质量工程 / Type Check`：存在类型检查配置与可执行命令。
+- `质量工程 / Unit Test`：存在单元测试框架或测试命令。
+- `CI/CD`：存在可执行的 CI 工作流配置（如 `.github/workflows/`）。
+
+### 工程基础工具（建议，非阻断）
+
+- `任务管理`：存在外部任务系统链接、项目约定或可核对流程文档；无法静态判断时记为 `manual`。
+- `可观测性`：存在日志/指标/错误追踪接入痕迹；无法静态判断时记为 `manual` 或按规则 `waived`。
 
 ## 强制核心仓库结构（必须满足）
 
@@ -144,7 +149,17 @@ flowchart LR
 - 输出优先使用清单表达“要什么”，避免在总流程文档写实现细节。
 - 进展、决策、风险与下一步必须能在 Markdown 中追溯。
 
+## 合规状态落库（强制）
+
+- 本 skill 提供统一模板：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`。
+- 每个项目必须在仓库根目录维护实例文件：`ai-native-compliance.md`。
+- 首次检查时，按模板初始化实例文件；后续检查只更新根目录实例文件，不修改模板结构。
+- 每次检查至少更新：`overall_status`、每个检查项的 `adoption_status`、`exception_reason`、`evidence`、`owner`、`next_action`、`updated_at`。
+- 当阻断项未使用但允许通过时，`adoption_status` 设为 `waived`，且必须填写 `exception_reason`。
+- 若本次执行了检查但未更新 `ai-native-compliance.md`，视为流程未完成。
+
 ## 参考文档
 
 - 主流程文档：`.agent/skills/ai-native-standard-flow/references/ai-native-tools-and-config.md`
 - 人类速查文档：`.agent/skills/ai-native-standard-flow/references/ai-native-one-page.md`
+- 合规模板：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`
