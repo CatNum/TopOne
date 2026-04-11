@@ -1,179 +1,91 @@
-# AI Native 合规状态
+# AI Native 合规检查清单（合并模板说明）
 
-> 目的：记录当前项目是否采用 AI Native 标准必需项。
-> 范围：项目实例文件应放在仓库根目录：`ai-native-compliance.md`。
+> **实例路径**：`docs/compliance/<产品版本>/checklist.md` + `checklist.json`（**不再**默认放在仓库根目录）。  
+> `<产品版本>` 与 `ai-native-automation.config.json` 的 `productVersion` 一致（如 `v1.0`）。
+
+## 模板拆分（参考用）
+
+| 模板文件 | 宏观阶段 | 用途 |
+|---------|----------|------|
+| `references/checklist-project-config.template.md` | 项目配置阶段 | 初始化基线 / 技术栈确认相关检查项（验收口径写入各行） |
+| `references/checklist-version-delivery.template.md` | 版本交付循环阶段 | 本版本需求～上线相关检查项（含阶段书面产出行） |
+
+自动化脚本将上述两类**合并写入**同一份 `checklist.md`（上节项目配置、下节本版本交付）。**不另表维护约定交付物**：工具/路径/阶段书面产出均作为检查表中的行，列为：
+
+`| 检查项 | 微观阶段 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |`
+
+---
+
+以下为 **合并后** 人类可读示例结构（与脚本生成物对齐；`v1.0` 请替换为当前 `productVersion`）。
+
+# AI Native 合规检查清单（v1.0）
+
+> 范围：`docs/compliance/v1.0/checklist.md`
 
 ## 人类速览
 
+- 产品版本：`v1.0`
 - 总体状态：`✅ 通过 | ❌ 不通过`
 - 采用状态图例：`✅ 通过 | ❌ 不通过 | 🟡 人工确认 | 🟣 豁免 | ⚪ 未知`
+- 当前交付阶段（`current_stage`，与 `checklist.json` 一致）：`初始化基线 | 技术栈确认 | 需求分析 | UI/原型 | 技术方案 | 开发 | 测试 | 上线准备`（配置：`ai-native-automation.config.json` 的 `currentStage`）
+- 宏观视角（**仅人类阅读**，不落机器字段）：`项目配置阶段` ≈ 微观 `初始化基线`～`技术栈确认`；`版本交付循环阶段` ≈ 微观 `需求分析`～`上线准备`
 - 检查人：
 - 备注：
 
-## 检查项
+## 一、项目配置阶段
 
-| 检查项 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |
-|---|---|---|---|---|---|---|
-| **AI 原生协作工具（必须）** |  |  |  |  |  |  |
-| skill（.agent/skills/） | ⚪ 未知 |  |  |  |  |  |
-| MCP | ⚪ 未知 |  |  |  |  |  |
-| OpenSpec | ⚪ 未知 |  |  |  |  |  |
-| OpenSkills | ⚪ 未知 |  |  |  |  |  |
-| AGENTS.md | ⚪ 未知 |  |  |  |  |  |
-| **工程基础工具（必须）** |  |  |  |  |  |  |
-| AI 编码助手 | 🟡 人工确认 |  |  |  |  |  |
-| 版本与评审 | ⚪ 未知 |  |  |  |  |  |
-| 质量工程 / Lint | ⚪ 未知 |  |  |  |  |  |
-| 质量工程 / Type Check | ⚪ 未知 |  |  |  |  |  |
-| 质量工程 / Unit Test | ⚪ 未知 |  |  |  |  |  |
-| CI/CD | ⚪ 未知 |  |  |  |  |  |
-| **前端交付资料（建议）** |  |  |  |  |  |  |
-| 原型资料（docs/prototype/） | ⚪ 未知 |  |  |  |  |  |
-| UI 规范资料（docs/ui/） | ⚪ 未知 |  |  |  |  |  |
-| **工程基础工具（建议）** |  |  |  |  |  |  |
-| 任务管理 | 🟡 人工确认 |  |  |  |  |  |
-| 可观测性 | ⚪ 未知 |  |  |  |  |  |
+### 检查项
+
+**说明**：每一行即验收口径；路径行由脚本按配置并入。
+
+| 检查项 | 微观阶段 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |
+|---|---|---|---|---|---|---|---|
+| **AI 原生协作工具（必须）** |  |  |  |  |  |  |  |
+| skill（.agent/skills/）：团队 SOP 固化 | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+| MCP：工具连接层 | 技术栈确认 | ⚪ 未知 |  |  |  |  |  |
+| OpenSpec：变更与任务分解规范库 | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+| OpenSkills：技能生命周期与同步 | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+| AGENTS.md：代理入口（与 skills 目录配套） | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+| **工程基础工具（必须）** |  |  |  |  |  |  |  |
+| AI 编码助手 | 初始化基线 | 🟡 人工确认 |  |  |  |  |  |
+| Git（仓库版本控制） | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+| 代码评审（PR/MR） | 初始化基线 | 🟡 人工确认 |  |  |  |  |  |
+| 质量工程 / Lint | 技术栈确认 | ⚪ 未知 |  |  |  |  |  |
+| 质量工程 / Type Check | 技术栈确认 | ⚪ 未知 |  |  |  |  |  |
+| 质量工程 / Unit Test | 技术栈确认 | ⚪ 未知 |  |  |  |  |  |
+| CI/CD | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+| **工程基础工具（建议）** |  |  |  |  |  |  |  |
+| 可观测性：日志、指标与错误追踪 | 技术栈确认 | ⚪ 未知 |  |  |  |  |  |
+| （路径存在性检查，由脚本按 `requiredPaths` 并入本节） | 初始化基线 | ⚪ 未知 |  |  |  |  |  |
+
+## 二、本版本交付（产品版本：v1.0）
+
+### 检查项
+
+**说明**：文档类基线见第一节路径检查；本节为版本链工具行与阶段书面产出。
+
+| 检查项 | 微观阶段 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |
+|---|---|---|---|---|---|---|---|
+| **文档交付（建议）** |  |  |  |  |  |  |  |
+| 需求文档（docs/requirements/） | 需求分析 | ⚪ 未知 |  |  |  |  |  |
+| 技术方案文档（docs/design/v1.0/） | 技术方案 | ⚪ 未知 |  |  |  |  |  |
+| **前端交付资料（建议）** |  |  |  |  |  |  |  |
+| 本版原型（docs/prototype/） | UI/原型 | ⚪ 未知 |  |  |  |  |  |
+| UI 规范（docs/ui/） | UI/原型 | ⚪ 未知 |  |  |  |  |  |
+| **工程基础工具（建议）** |  |  |  |  |  |  |  |
+| 任务管理：需求到任务的外部或流程入口 | 需求分析 | 🟡 人工确认 |  |  |  |  |  |
+| **阶段书面产出** |  |  |  |  |  |  |  |
+| 开发报告（默认 docs/compliance/v1.0/development-report.md，见 skill） | 开发 | ⚪ 未知 |  |  |  |  |  |
+| 测试报告（默认 docs/compliance/v1.0/test-report.md，见 skill） | 测试 | ⚪ 未知 |  |  |  |  |  |
+| 上线准备清单（发布说明、回滚等） | 上线准备 | ⚪ 未知 |  |  |  |  |  |
 
 ## 机器可读
 
 ```yaml
-schema_version: "1.0"
-project_file: "ai-native-compliance.md"
-overall_status: "unknown" # pass | fail | unknown
-items:
-  - item: "skill（.agent/skills/）"
-    category: "AI 原生协作工具"
-    required_level: "required" # required | recommended
-    adoption_status: "unknown" # pass | waived | manual | fail | unknown
-    exception_reason: "" # 当 adoption_status=waived 时必填
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "MCP"
-    category: "AI 原生协作工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "OpenSpec"
-    category: "AI 原生协作工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "OpenSkills"
-    category: "AI 原生协作工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "AGENTS.md"
-    category: "AI 原生协作工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "AI 编码助手"
-    category: "工程基础工具"
-    required_level: "required"
-    adoption_status: "manual"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "版本与评审"
-    category: "工程基础工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "质量工程 / Lint"
-    category: "工程基础工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "质量工程 / Type Check"
-    category: "工程基础工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "质量工程 / Unit Test"
-    category: "工程基础工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "CI/CD"
-    category: "工程基础工具"
-    required_level: "required"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "原型资料（docs/prototype/）"
-    category: "前端交付资料"
-    required_level: "recommended"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "UI 规范资料（docs/ui/）"
-    category: "前端交付资料"
-    required_level: "recommended"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "任务管理"
-    category: "工程基础工具"
-    required_level: "recommended"
-    adoption_status: "manual"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
-  - item: "可观测性"
-    category: "工程基础工具"
-    required_level: "recommended"
-    adoption_status: "unknown"
-    exception_reason: ""
-    evidence: []
-    owner: ""
-    next_action: ""
-    updated_at: ""
+schema_version: "1.2"
+project_file: "docs/compliance/v1.0/checklist.md"
+product_version: "v1.0"
+current_stage: "初始化基线"
+overall_status: "unknown"
+items: []
 ```

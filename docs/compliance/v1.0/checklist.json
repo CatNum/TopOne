@@ -1,0 +1,503 @@
+{
+  "schema_version": "1.2",
+  "product_version": "v1.0",
+  "current_stage": "初始化基线",
+  "overall_status": "unknown",
+  "status_semantics": {
+    "human_readable": "中文图标状态",
+    "machine_readable": "pass|fail|manual|waived|unknown"
+  },
+  "summary": {
+    "mode": "plan",
+    "created": 0,
+    "patched": 0,
+    "manual": 4,
+    "planned_changes": 4,
+    "machine_readable_file": "docs/compliance/v1.0/checklist.json",
+    "manual_finalize_files": []
+  },
+  "items": [
+    {
+      "item": "skill（.agent/skills/）：团队 SOP 固化",
+      "category": "AI 原生协作工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        ".agent/skills/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "MCP：工具连接层",
+      "category": "AI 原生协作工具",
+      "check_stage": "技术栈确认",
+      "required_level": "required",
+      "adoption_status": "waived",
+      "exception_reason": "当前项目暂未引入 MCP，阶段性豁免。",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "OpenSpec：变更与任务分解规范库",
+      "category": "AI 原生协作工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "openspec/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "OpenSkills：技能生命周期与同步",
+      "category": "AI 原生协作工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "manual",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "需要人工补充证据并确认状态",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "AGENTS.md：代理入口（与 skills 目录配套）",
+      "category": "AI 原生协作工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "AGENTS.md"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "AI 编码助手",
+      "category": "工程基础工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "manual",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "需要人工补充证据并确认状态",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "Git（仓库版本控制）",
+      "category": "工程基础工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        ".git"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "代码评审（PR/MR）",
+      "category": "工程基础工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "manual",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "需要人工补充证据并确认状态",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "质量工程 / Lint",
+      "category": "工程基础工具",
+      "check_stage": "技术栈确认",
+      "required_level": "required",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "质量工程 / Type Check",
+      "category": "工程基础工具",
+      "check_stage": "技术栈确认",
+      "required_level": "required",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "质量工程 / Unit Test",
+      "category": "工程基础工具",
+      "check_stage": "技术栈确认",
+      "required_level": "required",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [
+        "unit-test markers found"
+      ],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "CI/CD",
+      "category": "工程基础工具",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        ".github/workflows/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "可观测性：日志、指标与错误追踪",
+      "category": "工程基础工具",
+      "check_stage": "技术栈确认",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "路径存在: docs/compliance/v1.0/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/compliance/v1.0/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/product-snapshot/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/product-snapshot/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/requirements/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/requirements/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/design/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/design/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/prototype/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/prototype/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/ui/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/ui/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/glossary/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/glossary/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: docs/decisions/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "docs/decisions/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: openspec/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "openspec/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: AGENTS.md",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "AGENTS.md"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: .agent/skills/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        ".agent/skills/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: standards/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        "standards/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "路径存在: .github/workflows/",
+      "category": "仓库结构",
+      "check_stage": "初始化基线",
+      "required_level": "required",
+      "adoption_status": "pass",
+      "exception_reason": "",
+      "evidence": [
+        ".github/workflows/"
+      ],
+      "owner": "",
+      "next_action": "",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "本版原型（docs/prototype/）",
+      "category": "前端交付资料",
+      "check_stage": "UI/原型",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [
+        "docs/prototype/"
+      ],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 UI/原型 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "UI 规范（docs/ui/）",
+      "category": "前端交付资料",
+      "check_stage": "UI/原型",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [
+        "docs/ui/"
+      ],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 UI/原型 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "任务管理：需求到任务的外部或流程入口",
+      "category": "工程基础工具",
+      "check_stage": "需求分析",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 需求分析 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "需求文档（docs/requirements/）",
+      "category": "文档交付",
+      "check_stage": "需求分析",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [
+        "docs/requirements/"
+      ],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 需求分析 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "技术方案文档（docs/design/v1.0/）",
+      "category": "文档交付",
+      "check_stage": "技术方案",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 技术方案 开始检查",
+      "updated_at": "2026-04-11T07:34:35.509Z"
+    },
+    {
+      "item": "开发报告（默认 docs/compliance/v1.0/development-report.md，见 skill）",
+      "category": "阶段书面产出",
+      "check_stage": "开发",
+      "required_level": "required",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 开发 起纳入核对",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "测试报告（默认 docs/compliance/v1.0/test-report.md，见 skill）",
+      "category": "阶段书面产出",
+      "check_stage": "测试",
+      "required_level": "required",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 测试 起纳入核对",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    },
+    {
+      "item": "上线准备清单（发布说明、回滚等）",
+      "category": "阶段书面产出",
+      "check_stage": "上线准备",
+      "required_level": "recommended",
+      "adoption_status": "unknown",
+      "exception_reason": "",
+      "evidence": [],
+      "owner": "",
+      "next_action": "当前交付阶段为 初始化基线，该项在 上线准备 起纳入核对",
+      "updated_at": "2026-04-11T07:34:35.510Z"
+    }
+  ],
+  "change_plan": [
+    {
+      "type": "manual_only",
+      "target": "MCP",
+      "reason": "cannot be reliably validated automatically",
+      "payload": {},
+      "applied": false
+    },
+    {
+      "type": "manual_only",
+      "target": "AI 编码助手",
+      "reason": "requires workflow evidence",
+      "payload": {},
+      "applied": false
+    },
+    {
+      "type": "manual_only",
+      "target": "任务管理",
+      "reason": "external system binding",
+      "payload": {},
+      "applied": false
+    },
+    {
+      "type": "manual_only",
+      "target": "可观测性",
+      "reason": "tooling evidence requires manual confirmation",
+      "payload": {},
+      "applied": false
+    }
+  ]
+}

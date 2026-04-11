@@ -1,0 +1,10 @@
+{
+  "toolChecks": {
+    "mcp": {
+      "requiredLevel": "required",
+      "mode": "auto",
+      "forceStatus": "waived",
+      "exceptionReason": "当前项目暂未引入 MCP，阶段性豁免。"
+    }
+  }
+}

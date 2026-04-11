@@ -10,6 +10,42 @@ description: Execute AI Native standard collaboration workflow for zero-code dev
 - 在“人类不写代码”的模式下，保证从需求到交付的流程可执行、可追踪、可复盘。
 - 由 AI 主动推进流程，人类负责关键决策拍板。
 
+## 宏观生命周期（必读）
+
+本 skill 在**机器可读、检查表、自动化门禁**上只使用 **统一微观阶段**（`current_stage`），线性顺序如下：
+
+`初始化基线` → `技术栈确认` → `需求分析` → `UI/原型` → `技术方案` → `开发` → `测试` → `上线准备`
+
+`开发`、`测试` 阶段的通过条件体现在合规清单第二节「阶段书面产出」检查行（开发报告、测试报告等）。**默认文件路径**（与 `productVersion` 一致，可项目内整体迁址后在本仓库 README 声明）：
+
+| 产出 | 默认路径 |
+|------|----------|
+| 开发报告 | `docs/compliance/<产品版本>/development-report.md` |
+| 测试报告 | `docs/compliance/<产品版本>/test-report.md` |
+
+合规脚本会在清单行中引用上述默认路径；自动化仍按「到阶段则人工核对」处理，证据列以实际落盘文件为准。
+
+**宏观视角**（项目配置 vs 版本交付循环）**仅用于人类阅读与沟通**，不落机器字段；对应关系为：
+
+| 宏观（人类） | 对应微观区间 |
+|-------------|----------------|
+| 项目配置阶段 | `初始化基线`～`技术栈确认` |
+| 版本交付循环阶段 | `需求分析`～`上线准备` |
+
+```mermaid
+flowchart LR
+    A[初始化基线] --> B[技术栈确认]
+    B --> C[需求分析]
+    C --> D[UI/原型]
+    D --> E[技术方案]
+    E --> F[开发]
+    F --> G[测试]
+    G --> H[上线准备]
+    H --> C
+```
+
+合规文件 `docs/compliance/<产品版本>/checklist.md` / `checklist.json` 中的 **`current_stage`** 表示当前推进位置；**`check_stage`**（每项检查项）表示该检查从哪一微观阶段开始生效。
+
 ## 触发条件
 
 满足以下任一情况时使用本 skill：
@@ -43,6 +79,17 @@ flowchart TD
     I --> B
 ```
 
+## 各阶段 AI 行为规范
+
+为工作流每个节点定义 AI 的具体行为，确保流程可预期。
+
+| 阶段 | AI 必须输出 | AI 必须询问 | 推进判断条件 |
+|------|------------|------------|------------|
+| 需求澄清 | 结构化需求摘要（目标/范围/约束/验收标准） | "以上理解是否准确？是否有遗漏约束？" | 人类确认需求摘要 |
+| 任务拆分 | 编号任务列表（每项含：描述/验收标准/依赖） | "任务拆分是否合理？是否有需要调整的粒度？" | 人类确认任务列表 |
+| 执行推进 | 执行结果摘要 + 阻断项说明 | "结果是否符合预期？是否需要调整方向？" | 人类复核通过 |
+| 话题闭环 | 本话题完成摘要 + 下一话题建议列表 | "当前话题是否可以关闭？下一个优先话题是？" | 人类确认关闭并选定新话题 |
+
 ## 工具清单（必须具备）
 
 ### AI 原生协作工具（必须，阻断）
@@ -56,7 +103,8 @@ flowchart TD
 ### 工程基础工具（必须，阻断）
 
 - `AI 编码助手`：有可核对使用证据（工具配置、工作流约定或执行记录）；无法静态判断时记为 `manual`。
-- `版本与评审`：项目为 Git 仓库，并有可核对的评审流程痕迹（如 PR/评审约定）。
+- `Git`：仓库根存在 `.git`（版本控制就绪）。
+- `代码评审`：存在可核对的 PR/MR 或评审流程约定；无法静态判定时记为 `manual`。
 - `质量工程 / Lint`：存在 lint 配置与可执行命令。
 - `质量工程 / Type Check`：存在类型检查配置与可执行命令。
 - `质量工程 / Unit Test`：存在单元测试框架或测试命令。
@@ -74,12 +122,30 @@ flowchart TD
 ```text
 .
 ├── docs/
-│   ├── requirements/                  # 需求背景与需求分析
-│   ├── design/                        # 技术方案与架构设计
-│   ├── prototype/                     # 原型文档与交互说明（低/高保真）
-│   ├── ui/                            # UI 规范（页面清单、组件规范、设计令牌）
-│   ├── glossary/                      # 业务术语知识库
-│   ├── decisions/                     # 关键决策留痕
+│   ├── compliance/                    # 按产品版本的合规检查清单（每版本 checklist.md + checklist.json）
+│   │   └── v1.0/
+│   │       ├── checklist.md
+│   │       ├── checklist.json
+│   │       ├── development-report.md  # 本版开发报告（默认路径，可整体迁址后 README 声明）
+│   │       └── test-report.md         # 本版测试报告（默认路径，可整体迁址后 README 声明）
+│   ├── product-snapshot/              # 当前产品全量快照（评审/讨论基准，永远反映已发布状态）
+│   ├── requirements/                  # 需求增量（单文档，按产品版本 tag 分区维护）
+│   ├── design/                        # 架构设计（按产品发布版本目录化）
+│   │   ├── README.md                  # 版本索引
+│   │   └── v1.0/                      # 各版本设计文档（版本发布后只读）
+│   ├── prototype/                     # 原型（按产品发布版本目录化）
+│   │   ├── README.md                  # 版本索引
+│   │   └── v1.0/                      # 各版本原型（版本发布后只读）
+│   │       ├── README.md              # 页面清单 + 交互流程
+│   │       ├── screens/               # 页面截图（PNG，序号-页面名命名）
+│   │       └── flows/                 # 关键交互录屏（GIF，序号-流程名命名）
+│   ├── ui/                            # UI 规范（含设计令牌与组件规格）
+│   │   ├── README.md                  # 组件清单 + 页面规格入口
+│   │   ├── tokens/
+│   │   │   └── design-tokens.json     # 设计令牌（颜色/字体/间距），机器可读
+│   │   └── specs/                     # 组件/页面规格图（从 Figma 导出）
+│   ├── glossary/                      # 业务术语（活字典，无版本分区）
+│   ├── decisions/                     # 关键决策（序号化 ADR，append-only）
 │   └── integration/                   # 微服务跨服务交互文档（非微服务可缺省）
 ├── openspec/                          # 任务分解与变更推进规范库
 ├── AGENTS.md                          # AI 代理统一上下文入口
@@ -95,10 +161,49 @@ flowchart TD
 
 ### 强制校验规则
 
-- `必须存在`：`docs/requirements/`、`docs/design/`、`docs/prototype/`、`docs/ui/`、`docs/glossary/`、`docs/decisions/`、`openspec/`、`AGENTS.md`、`.agent/skills/`、`standards/`、`.github/workflows/`。
+- `必须存在`：`docs/compliance/<当前产品版本>/`（与 `productVersion` 一致）、`docs/product-snapshot/`、`docs/requirements/`、`docs/design/`、`docs/prototype/`、`docs/ui/`、`docs/glossary/`、`docs/decisions/`、`openspec/`、`AGENTS.md`、`.agent/skills/`、`standards/`、`.github/workflows/`。
 - `标准文件必须存在`：`standards/coding-standards.md`、`standards/project-structure-standards.md`、`standards/markdown-standards.md`、`standards/testing-standards.md`、`standards/review-checklist.md`。
-- `条件存在`：微服务场景必须存在 `docs/integration/`；非微服务场景可缺省，但需在文档中声明“非微服务”。
+- `条件存在`：微服务场景必须存在 `docs/integration/`；非微服务场景可缺省，但需在文档中声明”非微服务”。
 - `阻断规则`：任一必须项缺失时，当前话题只允许补齐结构，不允许进入实现。
+
+## 文档版本化策略
+
+`docs/` 下各类文档采用不同的版本化方式，策略依据两个维度判断：**历史内容是否需要独立引用**、**版本间差异是否是结构性的**。
+
+| 文档类型 | 版本化方式 | 理由 |
+|---------|----------|------|
+| `product-snapshot/` | **单文档，永远反映当前** | 全量快照，只关心”现在是什么”；历史通过 git log 追溯 |
+| `requirements/` | **单文档 + 版本区块 tag** | 增量记录，版本间差异是追加关系，不需要独立文件 |
+| `ui/` | **单文档（含子目录）** | 永远只需要当前规范；`tokens/` 存设计令牌，`specs/` 存规格图 |
+| `glossary/` | **活字典，无版本分区** | 术语演变通过"曾用名"和"变更原因"字段在同一行内记录，不按版本分区 |
+| `design/` | **版本目录化**（`v1.0/`、`v2.0/`） | 架构变更可能是结构性的，旧版本在迁移期需独立引用 |
+| `prototype/` | **版本目录化**（`v1.0/`、`v2.0/`） | 原型是交付前的约定快照，发布后成为只读历史证据 |
+| `decisions/` | **序号化 ADR**（`ADR-001-xxx.md`） | 决策是时间线上的不可变记录，不归属某个版本，append-only |
+
+### 各方式操作规范
+
+**单文档 + 版本区块 tag**（`requirements/`）：
+- 新版本开始时，在文档顶部插入新版本区块，旧区块标记为”已归档”。
+- 已归档区块内容不再修改。
+
+**单文档（含子目录，永远反映当前）**（`ui/`、`product-snapshot/`）：
+- 永远只维护当前状态，不按版本分区。
+- 历史变更通过 git log 追溯，文档本身不保留旧版本内容。
+
+**活字典**（`glossary/`）：
+- 不按版本分区，永远只有一张完整术语表。
+- 术语重命名：原行保留，在”曾用名”填旧名，”变更原因”说明替换理由。
+- 术语废弃：不删除，在”术语”列加删除线，”定义”列改为”已废弃，现用：XXX”。
+
+**版本目录化**（`design/`、`prototype/`）：
+- 每个产品版本创建独立子目录（如 `design/v2.0/`）。
+- 目录根部的 `README.md` 作为版本索引，列出所有版本及状态。
+- 版本发布后，对应目录标记为只读，不再修改。
+
+**序号化 ADR**（`decisions/`）：
+- 每个决策追加一个新文件，按 `ADR-NNN-简短标题.md` 命名。
+- 每条 ADR 内部注明”适用版本”字段。
+- 已有 ADR 不修改；如决策被推翻，新建一条 ADR 说明并引用原条目。
 
 ## CI 门禁分层（必须/建议）
 
@@ -135,6 +240,21 @@ flowchart LR
     H --> I[复盘]
 ```
 
+## AI 会话启动协议（每次新会话必须执行）
+
+每次新对话开始时，AI **必须**按以下步骤初始化上下文，不得跳过：
+
+1. **读取状态文件**：检查 `docs/compliance/<当前 productVersion>/checklist.json`（机器可读优先）或同目录 `checklist.md`（路径以 `ai-native-automation.config.json` 的 `productVersion` 为准）。
+2. **判断当前阶段**：
+   - 文件不存在 → 项目未初始化或未生成该版本清单，建议运行 `node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode apply-safe`
+   - `overall_status: fail` → 存在阻断项未补齐，优先引导补齐 fail 项，不进入实现
+   - `overall_status: unknown` → 存在 manual 项待确认，引导人工确认后再推进
+   - `overall_status: pass` → 框架就绪，询问当前话题
+3. **向用户汇报**：输出一段简短的状态摘要，包含：总体状态、fail 项列表、manual 项列表。
+4. **提出方向**：主动给出 2-3 个建议的下一步话题，由人类确认后推进。
+
+> 跨会话进度不会自动保留——每次会话必须重新读取状态文件，避免在错误上下文中推进。
+
 ## 执行清单（每个话题都要走）
 
 1. 明确目标与范围（先文档后执行）。
@@ -153,12 +273,12 @@ flowchart LR
 
 ## 合规状态落库（强制）
 
-- 本 skill 提供统一模板：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`。
-- 每个项目必须在仓库根目录维护实例文件：`ai-native-compliance.md`。
-- 首次检查时，按模板初始化实例文件；后续检查只更新根目录实例文件，不修改模板结构。
+- 合并说明与双模板参考：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`；拆分模板：`references/checklist-project-config.template.md`、`references/checklist-version-delivery.template.md`。
+- 每个**产品版本**在 `docs/compliance/<产品版本>/` 维护 `checklist.md` 与 `checklist.json`（由 `check-compliance.js` 写入；`<产品版本>` 与 `ai-native-automation.config.json` 的 `productVersion` 一致）。
 - 每次检查至少更新：`overall_status`、每个检查项的 `adoption_status`、`exception_reason`、`evidence`、`owner`、`next_action`、`updated_at`。
 - 当阻断项未使用但允许通过时，`adoption_status` 设为 `waived`，且必须填写 `exception_reason`。
-- 若本次执行了检查但未更新 `ai-native-compliance.md`，视为流程未完成。
+- 若本次执行了检查但未更新对应版本的 `checklist.md`，视为流程未完成。
+- `current_stage` 与每项 `check_stage` 必须参与自动化检查判定；未到阶段的检查项应保持 `unknown` 且不计入阻断。
 
 ## 自动化自定义设置（新增）
 
@@ -173,7 +293,7 @@ flowchart LR
 - 可选项目覆盖配置：`ai-native-automation.config.json`（仓库根目录）
 - 自动检查脚本：`.agent/skills/ai-native-standard-flow/scripts/check-compliance.js`
 - 引导模板目录：`.agent/skills/ai-native-standard-flow/references/bootstrap-templates/`
-- 合规输出文件：`ai-native-compliance.md` + `ai-native-compliance.json`（仓库根目录，自动生成/更新）
+- 合规输出文件：`docs/compliance/<productVersion>/checklist.md` + `checklist.json`（自动生成/更新）
 
 ### 执行方式
 
@@ -188,6 +308,8 @@ node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo 
 - `--dry-run`：等价于 `--mode plan`。
 - `--apply`：等价于 `--mode apply-safe`。
 - `executionPolicy.planWritesReports`：控制 `plan` 模式是否写入报告文件（默认 `true`）。
+- `productVersion`：当前清单所在产品版本（如 `v1.0`），决定输出目录 `docs/compliance/<productVersion>/`。
+- `currentStage`：当前统一微观阶段（见上文枚举），用于阶段化检查。
 
 ### 自动化流程（Mermaid）
 
@@ -217,6 +339,7 @@ flowchart TD
 - `manual`：需人工补充证据和确认（如 MCP、AI 编码助手）。
 - `waived`：允许豁免（仅在规则允许下），必须填写 `exception_reason`。
 - `unknown`：尚未完成判断。
+- 若检查项尚未到对应 `check_stage`，其状态保持 `unknown`，且不应计入当前阶段阻断。
 - 人类可读表格必须使用中文图标状态：`✅ 通过 | ❌ 不通过 | 🟡 人工确认 | 🟣 豁免 | ⚪ 未知`。
 - 机器可读 YAML/JSON 必须使用英文枚举：`pass/fail/manual/waived/unknown`。
 - 当必须项出现 `manual` 且尚未人工确认时，总体状态应标记为 `unknown`，禁止误判为 `pass`。

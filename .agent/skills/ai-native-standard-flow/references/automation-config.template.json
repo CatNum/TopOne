@@ -1,18 +1,22 @@
 {
-  "schemaVersion": "1.1",
+  "schemaVersion": "1.2",
   "projectType": "monolith",
+  "productVersion": "v1.0",
+  "currentStage": "初始化基线",
   "executionPolicy": {
     "defaultMode": "apply-safe",
     "allowSafePatch": true,
     "allowUnsafeOverwrite": false,
     "planWritesReports": true,
-    "blockOnRequiredManual": false
+    "blockOnRequiredManual": true
   },
   "outputs": {
-    "complianceMarkdownFile": "ai-native-compliance.md",
-    "complianceJsonFile": "ai-native-compliance.json"
+    "complianceMarkdownFile": "docs/compliance/v1.0/checklist.md",
+    "complianceJsonFile": "docs/compliance/v1.0/checklist.json"
   },
   "requiredPaths": [
+    "docs/compliance/v1.0/",
+    "docs/product-snapshot/",
     "docs/requirements/",
     "docs/design/",
     "docs/prototype/",
@@ -34,20 +38,24 @@
   ],
   "changeRules": {
     "safeAdd": [
+      "docs/compliance/README.md",
+      "docs/compliance/v1.0/checklist.md",
+      "docs/product-snapshot/README.md",
       "docs/requirements/README.md",
       "docs/design/README.md",
       "docs/prototype/README.md",
       "docs/ui/README.md",
+      "docs/ui/tokens/design-tokens.json",
       "docs/glossary/README.md",
       "docs/decisions/README.md",
       "standards/coding-standards.md",
       "standards/project-structure-standards.md",
       "standards/markdown-standards.md",
       "standards/testing-standards.md",
-      "standards/review-checklist.md"
+      "standards/review-checklist.md",
+      "AGENTS.md"
     ],
     "safePatch": [
-      "AGENTS.md"
     ],
     "manualOnly": [
       "MCP",
@@ -67,54 +75,82 @@
   },
   "toolChecks": {
     "skill": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "初始化基线"
     },
     "mcp": {
       "requiredLevel": "required",
-      "mode": "manual"
+      "mode": "manual",
+      "checkStage": "技术栈确认"
     },
     "openSpec": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "初始化基线"
     },
     "openSkills": {
       "requiredLevel": "required",
-      "mode": "manual"
+      "mode": "auto",
+      "checkStage": "初始化基线"
     },
     "agentsMd": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "初始化基线"
     },
     "aiCodingAssistant": {
       "requiredLevel": "required",
-      "mode": "manual"
+      "mode": "manual",
+      "checkStage": "初始化基线"
+    },
+    "git": {
+      "requiredLevel": "required",
+      "checkStage": "初始化基线"
     },
     "versionReview": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "mode": "manual",
+      "checkStage": "初始化基线"
     },
     "lint": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "技术栈确认"
     },
     "typeCheck": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "技术栈确认"
     },
     "unitTest": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "技术栈确认"
     },
     "ciCd": {
-      "requiredLevel": "required"
+      "requiredLevel": "required",
+      "checkStage": "初始化基线"
     },
     "prototypeMaterial": {
-      "requiredLevel": "recommended"
+      "requiredLevel": "recommended",
+      "checkStage": "UI/原型"
     },
     "uiMaterial": {
-      "requiredLevel": "recommended"
+      "requiredLevel": "recommended",
+      "checkStage": "UI/原型"
     },
     "taskManagement": {
       "requiredLevel": "recommended",
-      "mode": "manual"
+      "mode": "manual",
+      "checkStage": "需求分析"
+    },
+    "requirementsDoc": {
+      "requiredLevel": "recommended",
+      "checkStage": "需求分析"
+    },
+    "designDoc": {
+      "requiredLevel": "recommended",
+      "checkStage": "技术方案"
     },
     "observability": {
       "requiredLevel": "recommended",
-      "mode": "manual"
+      "mode": "manual",
+      "checkStage": "技术栈确认"
     }
   }
 }

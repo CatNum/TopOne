@@ -61,7 +61,8 @@ flowchart TD
 | 工具 | 目标 | 说明 |
 |---|---|---|
 | AI 编码助手 | 代码生成、重构、解释、测试草拟 | Cursor / Copilot / Claude Code |
-| 版本与评审 | 可追溯与协作审查 | Git + GitHub/GitLab |
+| Git | 版本控制 | `.git` |
+| 代码评审 | 协作审查 | PR/MR 或项目约定 |
 | 任务管理 | 任务拆分与验收闭环 | GitHub Issues / Jira / Linear |
 | 质量工具 | 静态检查与自动验证 | Lint / Type Check / Unit Test |
 | CI/CD | 自动门禁与发布流水线 | GitHub Actions / GitLab CI |
@@ -83,10 +84,14 @@ flowchart TD
 ```text
 .
 ├── docs/
+│   ├── compliance/            # 合规检查清单（按产品版本，如 v1.0/checklist.md）
+│   ├── product-snapshot/      # 当前产品全量快照（永远反映已发布状态）
 │   ├── requirements/          # 需求背景/需求分析
-│   ├── design/                # 技术方案/架构图
+│   ├── design/                # 技术方案/架构图（按版本目录化）
+│   ├── prototype/             # 原型（按版本目录化）
+│   ├── ui/                    # UI 规范（含 tokens/ 设计令牌与 specs/ 规格图）
 │   ├── glossary/              # 业务术语知识库
-│   ├── decisions/             # 历史决策
+│   ├── decisions/             # 历史决策（序号化 ADR）
 │   └── integration/           # 微服务跨服务交互（非微服务可选）
 ├── openspec/                  # OpenSpec 规范库（按项目实际结构管理）
 ├── AGENTS.md                  # AI 代理工作说明入口

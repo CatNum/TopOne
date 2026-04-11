@@ -7,6 +7,11 @@ AI Native = 文档驱动 + Spec 驱动 + 小步迭代 + 自动化门禁。
 对应 skill：`.agent/skills/ai-native-standard-flow/SKILL.md`  
 主流程文档：`.agent/skills/ai-native-standard-flow/references/ai-native-tools-and-config.md`
 
+## 阶段与合规（速查）
+
+- **机器/表格/AI**：统一使用微观阶段 `current_stage` / `check_stage`（共 8 步：`初始化基线` … `上线准备`），枚举与**阶段交付物**见 `references/compliance-status.template.md`。
+- **宏观（仅人类）**：项目配置阶段 ≈ 微观 `初始化基线`～`技术栈确认`；版本交付循环阶段 ≈ 微观 `需求分析`～`上线准备`。
+
 ## 目标场景
 
 - 人类不写一行代码，由 AI 完成从零开始的代码开发
@@ -46,7 +51,7 @@ flowchart LR
 ## 工程基础工具（保留）
 
 - AI 编码助手：Cursor / Copilot / Claude Code
-- 版本与评审：Git + GitHub/GitLab
+- Git：`.git`；代码评审：PR/MR 或项目约定
 - 任务管理：GitHub Issues / Jira / Linear
 - 质量工具：Lint / Type Check / Unit Test
 - CI/CD：GitHub Actions / GitLab CI
@@ -55,6 +60,8 @@ flowchart LR
 ## 必配目录
 
 ```text
+docs/compliance/<productVersion>/  # 合规检查清单（如 v1.0/checklist.md）
+docs/product-snapshot/             # 当前产品全量快照
 docs/requirements/
 docs/design/
 docs/prototype/
@@ -108,12 +115,15 @@ standards/review-checklist.md
 - 安全落地（默认建议）：
   - `node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode apply-safe`
 - 策略开关（可在 `ai-native-automation.config.json` 配置）：
+  - `productVersion`：合规清单目录（如 `docs/compliance/v1.0/`）
+  - `currentStage`：当前统一微观阶段
   - `executionPolicy.planWritesReports`：`plan` 模式是否写报告
   - `executionPolicy.blockOnRequiredManual`：是否对 required 的 `manual` 直接阻断
-- 执行后读取：
-  - 人类可读：`ai-native-compliance.md`（中文图标状态）
-  - 机器可读：`ai-native-compliance.json`（英文枚举状态）
+- 运行上条 `check-compliance.js` 命令（`plan` 或 `apply-safe`）**之后**，到 `docs/compliance/<productVersion>/`（`<productVersion>` 来自配置，默认与模板一致如 `v1.0`）**读取脚本写出的合规报告**：
+  - 人类可读：`checklist.md`（中文图标状态）
+  - 机器可读：`checklist.json`（英文枚举状态）
 - 前端资料检查：自动检查 `docs/prototype/` 与 `docs/ui/` 是否存在。
+- 阶段化检查：未到检查项对应 `check_stage` 时保持 `unknown`，且不计入当前阶段阻断。
 - 注意：`apply-safe` 自动新增的模板文件仅供参考，必须人工完善内容后再进入后续开发。
 
 ## Mermaid 工作流

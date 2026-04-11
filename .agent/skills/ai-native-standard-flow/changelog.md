@@ -5,6 +5,46 @@ All notable changes to this skill are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- 背景：Git 与评审混在一行；开发/测试报告路径未在 skill 固化；版本节缺少需求/技术方案检查行。
+- 动作：检查项拆为 `git` + `versionReview`（代码评审）；`SKILL.md` 约定开发/测试报告默认路径；新增 `requirementsDoc` / `designDoc` 与 `defaultCheckStage`；模板与 `compliance-status` 示例同步。
+- 时间：2026-04-11
+
+- 背景：约定交付物与检查项若分表或「再抄成行」会语义重复；检查项文字又与「微观阶段」等列叠床架屋。
+- 动作：**单表、单行单义**——删除脚本中合成交付物重复行；`ITEM_DEFS` 与「阶段书面产出」行写清口径且不重复列信息；模板与 `compliance-status` 示例表同步收敛；`buildVersionGateItems` 类目为「阶段书面产出」。
+- 时间：2026-04-11
+
+- 背景：合规清单需按宏观两阶段拆分呈现，且应随产品版本落库而非固定仓库根。
+- 动作：新增 `references/checklist-project-config.template.md` 与 `references/checklist-version-delivery.template.md`；`compliance-status.template.md` 改为合并说明与示例；默认输出改为 `docs/compliance/<productVersion>/checklist.{md,json}`；脚本渲染两节检查表、补充开发/测试/上线准备阶段书面产出行；bootstrap 增加 `docs/compliance/`；配置增加 `productVersion`。
+- 时间：2026-04-11
+
+- 背景：skill 文档与模板中迁移/别名说明过多，阅读噪音大。
+- 动作：`SKILL.md`、合规模板、one-page 仅保留最终微观阶段枚举与字段语义；脚本注释收敛，别名对象改名为 `STAGE_ALIASES`（行为不变）。
+- 时间：2026-04-11
+
+- 背景：独立「需求评审」「方案评审」与「需求分析」「技术方案」重复；开发/测试阶段缺少可核对交付物。
+- 动作：微观阶段收敛为 8 步（去掉 `需求评审`、`方案评审`，合并语义）；`开发`/`测试` 约定以**开发报告**/**测试报告**为阶段通过条件（路径项目自定）；脚本对旧枚举名做别名归并；模板增加「各微观阶段约定交付物」表。
+- 结果：阶段更少、门禁与交付物更可执行。
+- 影响：若配置或历史报告仍写 `需求评审`/`方案评审`，会自动映射为 `需求分析`/`技术方案`。
+- 时间：2026-04-11
+
+- 背景：合规需同时表达「治理五段」与「版本交付微观链」，多字段（`project_phase` / `macro_lifecycle` / `delivery_step`）对机器与表格不友好。
+- 动作：合并为统一微观阶段枚举（`current_stage` / `check_stage`）；`ai-native-automation.config.json` 使用 `currentStage` 与 `toolChecks.*.checkStage`；脚本保留对旧 `projectPhase` / `checkPhase` 的映射与读取；`ai-native-compliance.json` schema 升至 1.2；人类速览中保留宏观说明但不写入机器字段。
+- 结果：表格与 AI 消费字段仅含微观阶段；宏观「项目配置 / 版本交付循环」仅供人类阅读。
+- 影响：依赖 `check_phase` / `project_phase` 的自动化需改为 `check_stage` / `current_stage`。
+- 时间：2026-04-11
+
+- 背景：阶段模型原先过粗（初始化/技术栈确认后/迭代/上线准备），难以承载“每版本规划”与“实施验证”的门禁分层。
+- 动作：统一升级为五阶段模型：初始化阶段、技术栈确认阶段、版本规划阶段、实施与验证阶段、上线准备阶段；同步模板、配置、脚本与文档枚举。
+- 结果：阶段定义与检查规则更细粒度，能够支持 MVP/生产级不同节奏下的治理分支。
+- 影响：项目覆盖配置若使用旧阶段枚举需迁移到新枚举。
+- 时间：2026-04-10
+
+- 背景：合规模板已引入项目阶段与检查阶段字段，但脚本与文档未完全对齐，导致阶段化规则无法真实生效。
+- 动作：在脚本中引入 `projectPhase/checkPhase` 判定，报告同步输出阶段列与阶段字段；在 `SKILL.md` 与 one-page 明确“未到阶段不阻断”的规则。
+- 结果：阶段化门禁从“模板约定”升级为“自动化可执行规则”。
+- 影响：初始化阶段不再因技术栈未确认的 Lint/TypeCheck/UnitTest 被误阻断。
+- 时间：2026-04-10
+
 - 背景：前端项目在 AI Coding 场景下需要原型与 UI 资料作为稳定输入，但自动化检查未覆盖该维度。
 - 动作：将 `docs/prototype/`、`docs/ui/` 纳入强制目录基线与脚本检查，并扩展默认配置与引导模板。
 - 结果：合规检查可直接反映前端原型/UI 资料是否齐备。
