@@ -5,6 +5,10 @@ All notable changes to this skill are documented in this file.
 ## [Unreleased]
 
 ### Added
+- 背景：`check-compliance.js` 同时承担项目初始化（scaffold）和合规检查两个职责，导致 CI 语义模糊、阅读困难。
+- 动作：拆分为 `bootstrap.js`（初始化，只跑一次，始终 exit 0）+ `check-compliance.js`（合规检查，迭代中反复跑，fail/unknown 时 exit 1）；提取共享代码到 `scripts/lib/core.js`；更新 `SKILL.md` 执行方式说明与 `bootstrap-templates/AGENTS.md` 常用命令。
+- 时间：2026-04-11
+
 - 背景：版本级任务与进度需与合规目录同仓、且不与脚本生成物混写。
 - 动作：新增 `docs/compliance/<版本>/progress.md` bootstrap 模板；`safeAdd` 纳入；README / `SKILL.md` / `compliance-status.template.md` 说明分工（脚本只写 `checklist.*`）；`compliance-status.template.md` 补充 `progress.md` 初始化模板路径与「人主导、AI 协助」维护说明；对齐 `SKILL.md` / `bootstrap-templates/AGENTS.md` / `ai-native-tools-and-config.md` / 检查项模板脚注；**`currentStage` / `productVersion` 权威在根目录配置**，`checklist.*` 为脚本回写镜像。
 - 时间：2026-04-11

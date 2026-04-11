@@ -292,23 +292,32 @@ flowchart LR
 
 - 默认配置模板：`.agent/skills/ai-native-standard-flow/references/automation-config.template.json`
 - 可选项目覆盖配置：`ai-native-automation.config.json`（仓库根目录）
-- 自动检查脚本：`.agent/skills/ai-native-standard-flow/scripts/check-compliance.js`
+- **项目初始化脚本**：`.agent/skills/ai-native-standard-flow/scripts/bootstrap.js`（仅在项目初始化时运行一次，负责创建目录与模板文件，始终 exit 0）
+- **合规检查脚本**：`.agent/skills/ai-native-standard-flow/scripts/check-compliance.js`（迭代中反复运行，负责检查状态并写入 `checklist.*`，fail/unknown 时 exit 1）
+- 共享模块：`.agent/skills/ai-native-standard-flow/scripts/lib/core.js`（常量、工具函数、配置加载，供两个脚本共用）
 - 引导模板目录：`.agent/skills/ai-native-standard-flow/references/bootstrap-templates/`
 - 合规输出文件：`docs/compliance/<productVersion>/checklist.md` + `checklist.json`（脚本自动生成/更新）；同目录 `progress.md` 为 **safe_add 占位模板**，后续由**人类主导、AI 协助**编辑。
 
 ### 执行方式
 
 ```bash
-node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode apply-safe
+# 项目初始化（仅运行一次）
+node ".agent/skills/ai-native-standard-flow/scripts/bootstrap.js" --repo . --mode apply-safe
+
+# 合规检查（迭代中反复运行）
+node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo .
 ```
 
-可选参数：
+`bootstrap.js` 参数：
+- `--mode plan` / `--dry-run`：仅打印计划，不写任何文件。
+- `--mode apply-safe` / `--apply`：执行安全落地（默认）。
+
+`check-compliance.js` 参数：
 - `--config <path>`：指定额外配置文件；用于临时覆盖默认规则。
-- `--mode plan`：仅输出检查与变更计划（dry-run）。
-- `--mode apply-safe`：执行安全落地（新增/补齐、受保护补丁）。
+- `--mode plan`：检查但仅在 `planWritesReports=true` 时写报告。
+- `--mode apply-safe`：检查并写报告（默认）。
 - `--dry-run`：等价于 `--mode plan`。
 - `--apply`：等价于 `--mode apply-safe`。
-- `executionPolicy.planWritesReports`：控制 `plan` 模式是否写入报告文件（默认 `true`）。
 - `productVersion`：当前清单所在产品版本（如 `v1.0`），决定输出目录 `docs/compliance/<productVersion>/`。
 - `currentStage`：当前统一微观阶段（见上文枚举），用于阶段化检查。
 

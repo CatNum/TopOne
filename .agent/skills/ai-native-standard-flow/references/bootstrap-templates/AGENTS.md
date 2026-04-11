@@ -42,6 +42,12 @@
 
 # 构建
 # npm run build
+
+# AI Native 项目初始化（仅运行一次，创建目录与模板文件）
+node ".agent/skills/ai-native-standard-flow/scripts/bootstrap.js" --repo .
+
+# AI Native 合规检查（迭代中反复运行，写入 checklist.*）
+node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo .
 ```
 
 ## 代码规范
