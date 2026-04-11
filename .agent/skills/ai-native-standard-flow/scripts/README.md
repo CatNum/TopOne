@@ -63,7 +63,7 @@ node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo 
 |---|---|
 | 常量 | `ITEM_DEFS`、`STAGE_ORDER`、`MACRO1_STAGES`、动作类型常量等 |
 | 阶段逻辑 | `normalizeStage`、`resolveCurrentStage`、`isStageReached` |
-| I/O 工具 | `readJson`、`exists`、`readUtf8`、`writeUtf8`、`ensureDir`、`detectByMarkers`、`nowIso` |
+| I/O 工具 | `readJson`、`exists`、`readUtf8`、`writeUtf8`、`ensureDir`、`detectByMarkers`、`nowIso`（东八区 `YYYY-MM-DD HH:mm:ss`） |
 | 配置加载 | `loadConfig`、`deepMerge`、`normalizeConfig` |
 | 状态收集 | `collectState`（检测仓库中工具链与文档的实际状态） |
 | Bootstrap 引擎 | `templateRoot`、`addAction`、`planChanges`、`applyActions` |

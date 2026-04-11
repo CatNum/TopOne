@@ -8,7 +8,7 @@
     "machine_readable": "pass|fail|manual|waived|unknown"
   },
   "summary": {
-    "mode": "plan",
+    "mode": "apply-safe",
     "machine_readable_file": "docs/compliance/v1.0/checklist.json"
   },
   "items": [
@@ -24,7 +24,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "MCP：工具连接层",
@@ -36,7 +36,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "OpenSpec：变更与任务分解规范库",
@@ -50,19 +50,22 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "OpenSkills：技能生命周期与同步",
       "category": "AI 原生协作工具",
       "check_stage": "初始化基线",
       "required_level": "required",
-      "adoption_status": "manual",
+      "adoption_status": "pass",
       "exception_reason": "",
-      "evidence": [],
+      "evidence": [
+        ".agent/skills/",
+        ".github/workflows/sync-skills-to-upstream.yml"
+      ],
       "owner": "",
-      "next_action": "需要人工补充证据并确认状态",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "next_action": "",
+      "updated_at": "2026-04-11 18:36:22"
     },
     {
       "item": "AGENTS.md：代理入口（与 skills 目录配套）",
@@ -76,19 +79,21 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "AI 编码助手",
       "category": "工程基础工具",
       "check_stage": "初始化基线",
       "required_level": "required",
-      "adoption_status": "manual",
+      "adoption_status": "pass",
       "exception_reason": "",
-      "evidence": [],
+      "evidence": [
+        "Claude Code (claude-sonnet-4-6-n)"
+      ],
       "owner": "",
-      "next_action": "需要人工补充证据并确认状态",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "next_action": "",
+      "updated_at": "2026-04-11 18:36:22"
     },
     {
       "item": "Git（仓库版本控制）",
@@ -102,19 +107,19 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "代码评审（PR/MR）",
       "category": "工程基础工具",
       "check_stage": "初始化基线",
       "required_level": "required",
-      "adoption_status": "manual",
-      "exception_reason": "",
+      "adoption_status": "waived",
+      "exception_reason": "当前产品仅单人开发，无需 PR 评审流程，阶段性豁免。",
       "evidence": [],
       "owner": "",
-      "next_action": "需要人工补充证据并确认状态",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "next_action": "",
+      "updated_at": "2026-04-11 18:36:22"
     },
     {
       "item": "质量工程 / Lint",
@@ -126,7 +131,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "质量工程 / Type Check",
@@ -138,7 +143,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "质量工程 / Unit Test",
@@ -152,7 +157,7 @@
       ],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "CI/CD",
@@ -166,7 +171,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "可观测性：日志、指标与错误追踪",
@@ -178,7 +183,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 技术栈确认 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/compliance/v1.0/",
@@ -192,7 +197,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/product-snapshot/",
@@ -206,7 +211,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/requirements/",
@@ -220,7 +225,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/design/",
@@ -234,7 +239,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/prototype/",
@@ -248,7 +253,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/ui/",
@@ -262,7 +267,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/glossary/",
@@ -276,7 +281,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: docs/decisions/",
@@ -290,7 +295,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: openspec/",
@@ -304,7 +309,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: AGENTS.md",
@@ -318,7 +323,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: .agent/skills/",
@@ -332,7 +337,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: standards/",
@@ -346,7 +351,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "路径存在: .github/workflows/",
@@ -360,7 +365,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "本版原型（docs/prototype/）",
@@ -374,7 +379,7 @@
       ],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 UI/原型 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "UI 规范（docs/ui/）",
@@ -388,7 +393,7 @@
       ],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 UI/原型 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "任务管理：需求到任务的外部或流程入口",
@@ -400,7 +405,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 需求分析 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "需求文档（docs/requirements/）",
@@ -414,7 +419,7 @@
       ],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 需求分析 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "技术方案文档（docs/design/v1.0/）",
@@ -426,7 +431,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 技术方案 开始检查",
-      "updated_at": "2026-04-11T08:42:59.491Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "开发报告（默认 docs/compliance/v1.0/development-report.md，见 skill）",
@@ -438,7 +443,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 开发 起纳入核对",
-      "updated_at": "2026-04-11T08:42:59.492Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "测试报告（默认 docs/compliance/v1.0/test-report.md，见 skill）",
@@ -450,7 +455,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 测试 起纳入核对",
-      "updated_at": "2026-04-11T08:42:59.492Z"
+      "updated_at": "2026-04-11 18:24:51"
     },
     {
       "item": "上线准备清单（发布说明、回滚等）",
@@ -462,7 +467,7 @@
       "evidence": [],
       "owner": "",
       "next_action": "当前交付阶段为 初始化基线，该项在 上线准备 起纳入核对",
-      "updated_at": "2026-04-11T08:42:59.492Z"
+      "updated_at": "2026-04-11 18:24:51"
     }
   ]
 }

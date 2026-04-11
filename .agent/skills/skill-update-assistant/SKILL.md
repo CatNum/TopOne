@@ -62,7 +62,7 @@ flowchart TD
 
 - [ ] 项目根执行 `npx openskills sync`，刷新 `AGENTS.md` 中 `<available_skills>`（**勿手改** XML）— [OpenSkills](https://github.com/numman-ali/openskills)  
 - [ ] 在该 skill 目录 `project-docs/` 中更新三文档（按影响范围执行）：`design.md`、`changelog.md`、`resume-interview.md`
-- [ ] `project-docs/changelog.md` 格式遵循 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，仅使用 `Added/Changed/Deprecated/Removed/Fixed/Security` 分类，且采用 `Unreleased + 版本号 + 日期` 结构；每条版本记录需包含「背景 / 动作 / 结果 / 影响 / 时间」，并在每条记录之间保留两个空行
+- [ ] `project-docs/changelog.md` 格式遵循 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，仅使用 `Added/Changed/Deprecated/Removed/Fixed/Security` 分类，且采用 `Unreleased + 版本号 + 日期` 结构；每条版本记录需包含「**时间** / 背景 / 动作 / 结果 / 影响」——**时间**须为**东八区（UTC+8）**、**精确到秒**，格式 **`YYYY-MM-DD HH:mm:ss`**（例：`2020-06-01 10:10:46`）；并在每条记录之间保留两个空行
 - [ ] `project-docs/design.md` 按“是否影响架构/模块/流程/关键技术决策”决定更新；若有关键技术决策，补充 ADR
 - [ ] `project-docs/resume-interview.md` 在有可讲述价值时更新 STAR、量化指标、简历 Bullet、面试问答提纲；无可讲述价值可不更新，但需说明原因
 

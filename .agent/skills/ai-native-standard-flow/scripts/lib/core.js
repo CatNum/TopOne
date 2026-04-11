@@ -130,8 +130,18 @@ function detectByMarkers(repoRoot, markers) {
   return markers.some((marker) => exists(repoRoot, marker));
 }
 
+/** 东八区（Asia/Shanghai）本地时间，格式 `YYYY-MM-DD HH:mm:ss`（例：`2020-06-01 10:10:46`）。 */
 function nowIso() {
-  return new Date().toISOString();
+  return new Date().toLocaleString("sv-SE", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 }
 
 // ---------------------------------------------------------------------------
