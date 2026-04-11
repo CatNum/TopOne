@@ -40,6 +40,7 @@
     "safeAdd": [
       "docs/compliance/README.md",
       "docs/compliance/v1.0/checklist.md",
+      "docs/compliance/v1.0/progress.md",
       "docs/product-snapshot/README.md",
       "docs/requirements/README.md",
       "docs/design/README.md",

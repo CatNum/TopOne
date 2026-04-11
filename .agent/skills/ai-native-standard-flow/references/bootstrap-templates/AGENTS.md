@@ -3,6 +3,15 @@
 > 本文件是 AI 代理的统一上下文入口。请在项目初始化后根据实际情况完善各节内容。
 > 随项目成长持续更新——把你会告诉新队友的信息写在这里。
 
+## 当前交付状态（摘要）
+
+**权威来源**：仓库根 `ai-native-automation.config.json` 中的 `productVersion`（产品版本目录名）与 `currentStage`（统一微观阶段）。合规脚本与 `docs/compliance/<productVersion>/` 均以此为准。**对该 JSON 的关键变更须由人类确认后落盘**；AI 可协助起草或说明，不得在人类未确认时擅自写入并当作已生效。
+
+以下为给人看的速览（**与配置文件保持一致**；推进版本或阶段时**只改该 JSON**（经人类确认），再同步更新下面两行或改为「见配置文件」即可）：
+
+- 产品版本（`productVersion`）：
+- 当前阶段（`currentStage`）：`初始化基线 | 技术栈确认 | 需求分析 | UI/原型 | 技术方案 | 开发 | 测试 | 上线准备`（择一）
+
 ## 项目概览
 
 <!-- TODO: 用 1-3 句话描述本项目是什么、解决什么问题 -->
@@ -48,7 +57,7 @@
 - `docs/design/` — 架构设计（按版本目录化）
 - `docs/product-snapshot/` — 当前产品全量快照
 - `docs/decisions/` — 关键决策（ADR，append-only）
-- `docs/compliance/` — 合规检查清单（按产品版本）
+- `docs/compliance/` — 合规清单 `checklist.*`（脚本）与 `progress.md`（版本进度，人主导；按产品版本子目录）
 - `openspec/` — 任务分解与变更推进规范库
 
 ## 评审与提交规范

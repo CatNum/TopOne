@@ -1,4 +1,6 @@
 {
+  "productVersion": "v1.0",
+  "currentStage": "初始化基线",
   "toolChecks": {
     "mcp": {
       "requiredLevel": "required",

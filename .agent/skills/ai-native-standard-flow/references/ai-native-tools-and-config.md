@@ -84,7 +84,7 @@ flowchart TD
 ```text
 .
 ├── docs/
-│   ├── compliance/            # 合规检查清单（按产品版本，如 v1.0/checklist.md）
+│   ├── compliance/            # 按版本：checklist.*（脚本）+ progress.md（人写，如 v1.0/）
 │   ├── product-snapshot/      # 当前产品全量快照（永远反映已发布状态）
 │   ├── requirements/          # 需求背景/需求分析
 │   ├── design/                # 技术方案/架构图（按版本目录化）

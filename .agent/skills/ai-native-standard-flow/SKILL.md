@@ -44,7 +44,7 @@ flowchart LR
     H --> C
 ```
 
-合规文件 `docs/compliance/<产品版本>/checklist.md` / `checklist.json` 中的 **`current_stage`** 表示当前推进位置；**`check_stage`**（每项检查项）表示该检查从哪一微观阶段开始生效。
+**推进位置与产品版本**以仓库根 **`ai-native-automation.config.json`** 的 **`currentStage`**、**`productVersion`** 为**唯一权威**；对该文件的**关键取值变更须由人类确认后落盘**，AI 可协助起草或对比说明，**不得**在人类未确认时擅自写入并当作已生效配置。`check-compliance.js` 运行后写入的 **`checklist.md` / `checklist.json`** 中的 **`current_stage`** 等为**按配置回写的镜像**，应与配置一致；**`check_stage`**（每项检查项）表示该检查从哪一微观阶段开始生效。同目录 **`progress.md`** 可记录版本任务与进度摘要（**人类主导、AI 协助**维护），**不**承载机器用的 `current_stage` 字段。
 
 ## 触发条件
 
@@ -122,10 +122,11 @@ flowchart TD
 ```text
 .
 ├── docs/
-│   ├── compliance/                    # 按产品版本的合规检查清单（每版本 checklist.md + checklist.json）
+│   ├── compliance/                    # 按产品版本：合规清单（脚本写）+ 版本进度（人写）
 │   │   └── v1.0/
 │   │       ├── checklist.md
 │   │       ├── checklist.json
+│   │       ├── progress.md            # 本版任务/里程碑（脚本不覆盖）
 │   │       ├── development-report.md  # 本版开发报告（默认路径，可整体迁址后 README 声明）
 │   │       └── test-report.md         # 本版测试报告（默认路径，可整体迁址后 README 声明）
 │   ├── product-snapshot/              # 当前产品全量快照（评审/讨论基准，永远反映已发布状态）
@@ -244,8 +245,8 @@ flowchart LR
 
 每次新对话开始时，AI **必须**按以下步骤初始化上下文，不得跳过：
 
-1. **读取状态文件**：检查 `docs/compliance/<当前 productVersion>/checklist.json`（机器可读优先）或同目录 `checklist.md`（路径以 `ai-native-automation.config.json` 的 `productVersion` 为准）。
-2. **判断当前阶段**：
+1. **读取状态**：先读仓库根 **`ai-native-automation.config.json`** 的 **`productVersion`**、**`currentStage`**（权威）。再读 **`docs/compliance/<productVersion>/checklist.json`**（或同目录 `checklist.md`）作为最近一次合规快照；其中 **`current_stage` 应与配置一致**（由脚本回写）。若存在同目录 **`progress.md`**，一并浏览版本任务摘要（不由脚本生成）。
+2. **判断合规与门禁**：
    - 文件不存在 → 项目未初始化或未生成该版本清单，建议运行 `node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode apply-safe`
    - `overall_status: fail` → 存在阻断项未补齐，优先引导补齐 fail 项，不进入实现
    - `overall_status: unknown` → 存在 manual 项待确认，引导人工确认后再推进
@@ -253,7 +254,7 @@ flowchart LR
 3. **向用户汇报**：输出一段简短的状态摘要，包含：总体状态、fail 项列表、manual 项列表。
 4. **提出方向**：主动给出 2-3 个建议的下一步话题，由人类确认后推进。
 
-> 跨会话进度不会自动保留——每次会话必须重新读取状态文件，避免在错误上下文中推进。
+> 跨会话进度不会自动保留——每次会话必须重新读取**配置与合规清单**（及可选 `progress.md`），避免在错误上下文中推进。
 
 ## 执行清单（每个话题都要走）
 
@@ -273,11 +274,11 @@ flowchart LR
 
 ## 合规状态落库（强制）
 
-- 合并说明与双模板参考：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`；拆分模板：`references/checklist-project-config.template.md`、`references/checklist-version-delivery.template.md`。
-- 每个**产品版本**在 `docs/compliance/<产品版本>/` 维护 `checklist.md` 与 `checklist.json`（由 `check-compliance.js` 写入；`<产品版本>` 与 `ai-native-automation.config.json` 的 `productVersion` 一致）。
-- 每次检查至少更新：`overall_status`、每个检查项的 `adoption_status`、`exception_reason`、`evidence`、`owner`、`next_action`、`updated_at`。
+- 合并说明与模板参考：`.agent/skills/ai-native-standard-flow/references/compliance-status.template.md`；检查项拆分模板：`references/checklist-project-config.template.md`、`references/checklist-version-delivery.template.md`；**版本进度初始化模板**：`references/bootstrap-templates/docs/compliance/<产品版本>/progress.md`。
+- 每个**产品版本**在 `docs/compliance/<产品版本>/` 维护：`checklist.md` 与 `checklist.json`（由 `check-compliance.js` 写入）；以及 **`progress.md`**（本版本任务与进度摘要，**人与 AI 维护**，脚本不覆盖）。`<产品版本>` 与 `ai-native-automation.config.json` 的 `productVersion` 一致。
+- 每次运行合规脚本后，**`checklist.*`** 至少应反映：`overall_status`、每个检查项的 `adoption_status`、`exception_reason`、`evidence`、`owner`、`next_action`、`updated_at`。
 - 当阻断项未使用但允许通过时，`adoption_status` 设为 `waived`，且必须填写 `exception_reason`。
-- 若本次执行了检查但未更新对应版本的 `checklist.md`，视为流程未完成。
+- 若本次执行了检查但未更新对应版本的 **`checklist.md`**（及同步 **`checklist.json`**），视为流程未完成。**`progress.md`** 由人主导维护，不要求与每次脚本运行同步，但推进版本时应保持可读、可核对。
 - `current_stage` 与每项 `check_stage` 必须参与自动化检查判定；未到阶段的检查项应保持 `unknown` 且不计入阻断。
 
 ## 自动化自定义设置（新增）
@@ -293,7 +294,7 @@ flowchart LR
 - 可选项目覆盖配置：`ai-native-automation.config.json`（仓库根目录）
 - 自动检查脚本：`.agent/skills/ai-native-standard-flow/scripts/check-compliance.js`
 - 引导模板目录：`.agent/skills/ai-native-standard-flow/references/bootstrap-templates/`
-- 合规输出文件：`docs/compliance/<productVersion>/checklist.md` + `checklist.json`（自动生成/更新）
+- 合规输出文件：`docs/compliance/<productVersion>/checklist.md` + `checklist.json`（脚本自动生成/更新）；同目录 `progress.md` 为 **safe_add 占位模板**，后续由**人类主导、AI 协助**编辑。
 
 ### 执行方式
 

@@ -170,3 +170,8 @@ Usage notes:
 <!-- SKILLS_TABLE_END -->
 
 </skills_system>
+
+## 当前交付状态（摘要）
+
+- **权威配置**：仓库根 `ai-native-automation.config.json` 的 `productVersion`、`currentStage`（合规与 `docs/compliance/<版本>/` 以此为准）。**关键变更须人类确认后落盘**；AI 可协助起草，不得擅自写入并当作已生效。
+- **速览**（与上项保持同步；变更时经人类确认后改 JSON）：产品版本见该文件 `productVersion`；阶段见 `currentStage`。

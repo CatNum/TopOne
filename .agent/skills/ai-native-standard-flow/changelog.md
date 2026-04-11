@@ -4,7 +4,16 @@ All notable changes to this skill are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- 背景：版本级任务与进度需与合规目录同仓、且不与脚本生成物混写。
+- 动作：新增 `docs/compliance/<版本>/progress.md` bootstrap 模板；`safeAdd` 纳入；README / `SKILL.md` / `compliance-status.template.md` 说明分工（脚本只写 `checklist.*`）；`compliance-status.template.md` 补充 `progress.md` 初始化模板路径与「人主导、AI 协助」维护说明；对齐 `SKILL.md` / `bootstrap-templates/AGENTS.md` / `ai-native-tools-and-config.md` / 检查项模板脚注；**`currentStage` / `productVersion` 权威在根目录配置**，`checklist.*` 为脚本回写镜像。
+- 时间：2026-04-11
+
 ### Changed
+- 背景：`productVersion` / `currentStage` 需在 Agent 入口可见且与自动化一致。
+- 动作：`references/bootstrap-templates/AGENTS.md` 增加「当前交付状态」节，明确以 `ai-native-automation.config.json` 为权威。
+- 时间：2026-04-11
+
 - 背景：Git 与评审混在一行；开发/测试报告路径未在 skill 固化；版本节缺少需求/技术方案检查行。
 - 动作：检查项拆为 `git` + `versionReview`（代码评审）；`SKILL.md` 约定开发/测试报告默认路径；新增 `requirementsDoc` / `designDoc` 与 `defaultCheckStage`；模板与 `compliance-status` 示例同步。
 - 时间：2026-04-11

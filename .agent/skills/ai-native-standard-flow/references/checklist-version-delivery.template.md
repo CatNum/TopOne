@@ -1,7 +1,7 @@
 # 版本交付阶段检查模板
 
 > 用途：记录**本版本交付链**（宏观：版本交付循环阶段）。  
-> 实例位置：合并写入 `docs/compliance/<产品版本>/checklist.md` 第二节；**每个产品版本**一份 `checklist.md`。本文件为独立参考模板。
+> 实例位置：合并写入 `docs/compliance/<产品版本>/checklist.md` 第二节；同目录 **`progress.md`** 为版本进度（bootstrap 初始化，人主导维护）。**每个产品版本**一份 `checklist.md`。本文件为独立参考模板。
 
 ## 人类速览
 

@@ -9,7 +9,7 @@ AI Native = 文档驱动 + Spec 驱动 + 小步迭代 + 自动化门禁。
 
 ## 阶段与合规（速查）
 
-- **机器/表格/AI**：统一使用微观阶段 `current_stage` / `check_stage`（共 8 步：`初始化基线` … `上线准备`），枚举与**阶段交付物**见 `references/compliance-status.template.md`。
+- **机器/表格/AI**：统一使用微观阶段 `current_stage` / `check_stage`（共 8 步：`初始化基线` … `上线准备`）；**`currentStage` 以根目录 `ai-native-automation.config.json` 为准**，清单内 `current_stage` 为脚本回写镜像。枚举与**阶段交付物**见 `references/compliance-status.template.md`。
 - **宏观（仅人类）**：项目配置阶段 ≈ 微观 `初始化基线`～`技术栈确认`；版本交付循环阶段 ≈ 微观 `需求分析`～`上线准备`。
 
 ## 目标场景
@@ -60,7 +60,7 @@ flowchart LR
 ## 必配目录
 
 ```text
-docs/compliance/<productVersion>/  # 合规检查清单（如 v1.0/checklist.md）
+docs/compliance/<productVersion>/  # checklist.*（脚本）+ progress.md（版本进度，人写）
 docs/product-snapshot/             # 当前产品全量快照
 docs/requirements/
 docs/design/
@@ -119,9 +119,9 @@ standards/review-checklist.md
   - `currentStage`：当前统一微观阶段
   - `executionPolicy.planWritesReports`：`plan` 模式是否写报告
   - `executionPolicy.blockOnRequiredManual`：是否对 required 的 `manual` 直接阻断
-- 运行上条 `check-compliance.js` 命令（`plan` 或 `apply-safe`）**之后**，到 `docs/compliance/<productVersion>/`（`<productVersion>` 来自配置，默认与模板一致如 `v1.0`）**读取脚本写出的合规报告**：
-  - 人类可读：`checklist.md`（中文图标状态）
-  - 机器可读：`checklist.json`（英文枚举状态）
+- 运行上条 `check-compliance.js` 命令（`plan` 或 `apply-safe`）**之后**，到 `docs/compliance/<productVersion>/`（`<productVersion>` 来自配置，默认与模板一致如 `v1.0`）：
+  - **脚本生成**：`checklist.md`（人类可读）、`checklist.json`（机器可读）
+  - **人与 AI 维护**（脚本不覆盖）：`progress.md`（本版本任务与进度摘要）
 - 前端资料检查：自动检查 `docs/prototype/` 与 `docs/ui/` 是否存在。
 - 阶段化检查：未到检查项对应 `check_stage` 时保持 `unknown`，且不计入当前阶段阻断。
 - 注意：`apply-safe` 自动新增的模板文件仅供参考，必须人工完善内容后再进入后续开发。

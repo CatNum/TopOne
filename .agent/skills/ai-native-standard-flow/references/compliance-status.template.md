@@ -1,7 +1,8 @@
 # AI Native 合规检查清单（合并模板说明）
 
-> **实例路径**：`docs/compliance/<产品版本>/checklist.md` + `checklist.json`（**不再**默认放在仓库根目录）。  
-> `<产品版本>` 与 `ai-native-automation.config.json` 的 `productVersion` 一致（如 `v1.0`）。
+> **实例路径**：`docs/compliance/<产品版本>/checklist.md` + `checklist.json`（脚本生成）；同目录另有 **`progress.md`**（版本任务与进度摘要）。  
+> **`progress.md` 生命周期**：内容由 **`references/bootstrap-templates/docs/compliance/<产品版本>/progress.md`** 在**首次初始化**（如 `check-compliance.js --mode apply-safe` 的 `safe_add`，或手工复制 bootstrap）时落盘到实例路径；**之后仅由人类主导、AI 协助编辑**，脚本**不再**覆盖该文件。  
+> `<产品版本>` 与 `ai-native-automation.config.json` 的 `productVersion` 一致（如 `v1.0`）；新开版本请复制 bootstrap 中对应版本目录并同步 `changeRules.safeAdd` 中的路径。
 
 ## 模板拆分（参考用）
 
@@ -9,8 +10,9 @@
 |---------|----------|------|
 | `references/checklist-project-config.template.md` | 项目配置阶段 | 初始化基线 / 技术栈确认相关检查项（验收口径写入各行） |
 | `references/checklist-version-delivery.template.md` | 版本交付循环阶段 | 本版本需求～上线相关检查项（含阶段书面产出行） |
+| `references/bootstrap-templates/docs/compliance/<产品版本>/progress.md` | 版本交付（人类进度） | 初始化实例 `docs/compliance/<产品版本>/progress.md`；后续人主导、AI 协助维护 |
 
-自动化脚本将上述两类**合并写入**同一份 `checklist.md`（上节项目配置、下节本版本交付）。**不另表维护约定交付物**：工具/路径/阶段书面产出均作为检查表中的行，列为：
+自动化脚本将**上表前两行**检查项模板**合并写入**同一份 `checklist.md`（上节项目配置、下节本版本交付）。**`progress.md` 不在此合并流程内**，仅按上文「生命周期」从 bootstrap **初始化一次**后由人主导维护。**不另表维护约定交付物**：`checklist` 中工具/路径/阶段书面产出均作为检查表中的行，列为：
 
 `| 检查项 | 微观阶段 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |`
 
@@ -20,14 +22,14 @@
 
 # AI Native 合规检查清单（v1.0）
 
-> 范围：`docs/compliance/v1.0/checklist.md`
+> 范围：`docs/compliance/v1.0/checklist.md`（合规表）；同目录 `progress.md` 为版本进度，见文首说明。
 
 ## 人类速览
 
 - 产品版本：`v1.0`
 - 总体状态：`✅ 通过 | ❌ 不通过`
 - 采用状态图例：`✅ 通过 | ❌ 不通过 | 🟡 人工确认 | 🟣 豁免 | ⚪ 未知`
-- 当前交付阶段（`current_stage`，与 `checklist.json` 一致）：`初始化基线 | 技术栈确认 | 需求分析 | UI/原型 | 技术方案 | 开发 | 测试 | 上线准备`（配置：`ai-native-automation.config.json` 的 `currentStage`）
+- 当前交付阶段：以 **`ai-native-automation.config.json` → `currentStage`** 为准；`checklist.json` 中的 `current_stage` 为脚本按配置回写，**应与之一致**。枚举：`初始化基线 | 技术栈确认 | 需求分析 | UI/原型 | 技术方案 | 开发 | 测试 | 上线准备`
 - 宏观视角（**仅人类阅读**，不落机器字段）：`项目配置阶段` ≈ 微观 `初始化基线`～`技术栈确认`；`版本交付循环阶段` ≈ 微观 `需求分析`～`上线准备`
 - 检查人：
 - 备注：
