@@ -19,6 +19,7 @@
  *   2  参数错误
  */
 
+const fs = require("fs");
 const path = require("path");
 const {
   ITEM_DEFS,
@@ -239,6 +240,43 @@ function computeOverallStatus(items, currentStage) {
   return "pass";
 }
 
+function readExistingJsonReport(repoRoot, outputJson) {
+  const filePath = path.join(repoRoot, outputJson);
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (_) {
+    return null;
+  }
+}
+
+function mergeWithExistingConfirmedItems(items, existingReport) {
+  if (!existingReport || !Array.isArray(existingReport.items)) return items;
+  const existingByItem = new Map(existingReport.items.map((it) => [it.item, it]));
+
+  return items.map((item) => {
+    const existing = existingByItem.get(item.item);
+    if (!existing) return item;
+
+    const existingStatus = existing.adoption_status;
+    const keepConfirmed = existingStatus === "pass" || existingStatus === "waived";
+    const newStatus = item.adoptionStatus;
+    const newNeedsManual = newStatus === "manual";
+
+    if (!keepConfirmed || !newNeedsManual) return item;
+
+    return {
+      ...item,
+      adoptionStatus: existing.adoption_status,
+      exceptionReason: existing.exception_reason || item.exceptionReason,
+      evidence: Array.isArray(existing.evidence) ? existing.evidence : item.evidence,
+      owner: existing.owner || item.owner,
+      nextAction: existing.next_action || "",
+      updatedAt: existing.updated_at || item.updatedAt,
+    };
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
@@ -300,7 +338,6 @@ function toTableRows(items) {
 
 function renderComplianceMarkdown(outputFile, overallStatus, items, summary, currentStage, productVersion) {
   const badge = overallStatus === "pass" ? "✅ 通过" : overallStatus === "unknown" ? "🟡 待确认" : "❌ 不通过";
-  const yamlBlock = toYaml(items, overallStatus, outputFile, currentStage, productVersion);
   const { macro1, macro2 } = splitItemsByMacro(items);
 
   return `# AI Native 合规检查清单（${productVersion}）
@@ -338,14 +375,6 @@ ${toTableRows(macro1)}
 | 检查项 | 微观阶段 | 采用状态 | 未使用原因（豁免说明） | 证据 | 负责人 | 下一步动作 | 更新时间 |
 |---|---|---|---|---|---|---|---|
 ${toTableRows(macro2)}
-
-## 机器可读
-
-\`说明：本节采用英文枚举（pass/fail/manual/waived/unknown）供自动化解析。\`
-
-\`\`\`yaml
-${yamlBlock}
-\`\`\`
 `;
 }
 
@@ -412,9 +441,13 @@ function main() {
   const outputFile = config.outputs.complianceMarkdownFile || defaultMd;
   const outputJson = config.outputs.complianceJsonFile || defaultJson;
 
+  const existingReport = readExistingJsonReport(repoRoot, outputJson);
+  const mergedItems = mergeWithExistingConfirmedItems(items, existingReport);
+  const mergedOverallStatus = computeOverallStatus(mergedItems, currentStage);
+
   const summary = { mode, machine_readable_file: outputJson };
-  const markdown = renderComplianceMarkdown(outputFile, overallStatus, items, summary, currentStage, productVersion);
-  const jsonReport = renderJsonReport(summary, items, overallStatus, currentStage, productVersion);
+  const markdown = renderComplianceMarkdown(outputFile, mergedOverallStatus, mergedItems, summary, currentStage, productVersion);
+  const jsonReport = renderJsonReport(summary, mergedItems, mergedOverallStatus, currentStage, productVersion);
 
   const shouldWriteReports = mode === "apply-safe" || Boolean(config.executionPolicy.planWritesReports);
   if (shouldWriteReports) {
@@ -426,10 +459,10 @@ function main() {
     console.log("plan mode with planWritesReports=false: report files are not written");
   }
 
-  console.log(`overall_status=${overallStatus}`);
+  console.log(`overall_status=${mergedOverallStatus}`);
   console.log(`mode=${mode}`);
 
-  if (overallStatus === "fail" || overallStatus === "unknown") {
+  if (mergedOverallStatus === "fail" || mergedOverallStatus === "unknown") {
     process.exit(1);
   }
 }

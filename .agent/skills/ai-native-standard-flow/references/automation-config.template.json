@@ -7,7 +7,7 @@
     "defaultMode": "apply-safe",
     "allowSafePatch": true,
     "allowUnsafeOverwrite": false,
-    "planWritesReports": true,
+    "planWritesReports": false,
     "blockOnRequiredManual": true
   },
   "outputs": {

@@ -185,7 +185,7 @@ function normalizeConfig(config) {
       defaultMode: "apply-safe",
       allowSafePatch: true,
       allowUnsafeOverwrite: false,
-      planWritesReports: true,
+      planWritesReports: false,
       blockOnRequiredManual: false,
     },
     adapters: config.adapters || {},

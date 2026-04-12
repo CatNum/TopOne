@@ -42,7 +42,9 @@ node ".agent/skills/ai-native-standard-flow/scripts/bootstrap.js" --repo .
 **做什么**：
 - 检测工具链状态（git、lint、typeCheck、unitTest、CI/CD、skills、openSpec 等）
 - 按 `currentStage` 做阶段门禁（未到阶段的检查项保持 `unknown`，不计入阻断）
-- 写入 `docs/compliance/<productVersion>/checklist.md`（人类可读）和 `checklist.json`（机器可读）
+- 写入 `docs/compliance/<productVersion>/checklist.md`（仅人类可读表格）和 `checklist.json`（唯一机器可读文件）
+- 对已人工确认为 `pass` / `waived` 的项，若本次自动检查只能得到 `manual`，则保留原确认结果，不做回退覆盖
+- `plan` 模式默认不写 `checklist.*`，避免污染已确认结果
 - `overall_status=fail/unknown` 时 exit 1，可阻断 CI
 
 **不做什么**：不创建目录或模板文件（那是 bootstrap 的职责）。
@@ -51,7 +53,7 @@ node ".agent/skills/ai-native-standard-flow/scripts/bootstrap.js" --repo .
 # 检查并写入报告
 node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo .
 
-# 仅检查，planWritesReports=false 时不写文件
+# 仅检查；默认不写文件，只有 planWritesReports=true 时才会写文件
 node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo . --mode plan
 ```
 
