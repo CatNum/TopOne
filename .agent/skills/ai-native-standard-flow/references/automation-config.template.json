@@ -49,6 +49,7 @@
       "docs/ui/tokens/design-tokens.json",
       "docs/glossary/README.md",
       "docs/decisions/README.md",
+      "docs/decisions/v1.0/README.md",
       "standards/coding-standards.md",
       "standards/project-structure-standards.md",
       "standards/markdown-standards.md",

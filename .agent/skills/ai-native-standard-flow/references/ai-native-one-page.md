@@ -67,7 +67,7 @@ docs/design/
 docs/prototype/
 docs/ui/
 docs/glossary/
-docs/decisions/
+docs/decisions/               # 根 README + 按版本目录维护 ADR
 docs/integration/  # 微服务场景可选
 openspec/
 AGENTS.md
@@ -97,7 +97,7 @@ standards/review-checklist.md
 - 需要 `standards/project-structure-standards.md` 标准文件。
 - 需要 `standards/markdown-standards.md` 标准文件。
 - 需要 `standards/review-checklist.md` 标准文件。
-- 需要 `docs/requirements/`、`docs/design/`、`docs/glossary/`、`docs/decisions/` 文档目录。
+- 需要 `docs/requirements/`、`docs/design/`、`docs/glossary/`、`docs/decisions/`（按版本目录维护）文档目录。
 - 需要项目代码库与 OpenSpec 规范库（微服务场景补充 `docs/integration/`）。
 
 ## 单任务执行模板（复制即用）

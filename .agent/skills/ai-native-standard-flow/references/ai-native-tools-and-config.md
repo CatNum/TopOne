@@ -91,7 +91,7 @@ flowchart TD
 │   ├── prototype/             # 原型（按版本目录化）
 │   ├── ui/                    # UI 规范（含 tokens/ 设计令牌与 specs/ 规格图）
 │   ├── glossary/              # 业务术语知识库
-│   ├── decisions/             # 历史决策（序号化 ADR）
+│   ├── decisions/             # 历史决策（根 README + 按版本目录维护 ADR）
 │   └── integration/           # 微服务跨服务交互（非微服务可选）
 ├── openspec/                  # OpenSpec 规范库（按项目实际结构管理）
 ├── AGENTS.md                  # AI 代理工作说明入口
@@ -144,7 +144,7 @@ flowchart TD
 - 需要项目代码库与 OpenSpec 规范库。
 - 需要团队编码规范文件（`standards/coding-standards.md`）。
 - 需要 `docs/glossary/`（业务术语知识库）相关文档。
-- 需要 `docs/decisions/`（历史决策）相关文档。
+- 需要 `docs/decisions/`（历史决策，按版本目录维护）相关文档。
 - 微服务场景需要 `docs/integration/`（跨服务交互关系）相关文档。
 
 ### 5.3 Markdown 文档规范

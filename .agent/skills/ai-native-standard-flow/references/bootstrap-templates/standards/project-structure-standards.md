@@ -22,7 +22,7 @@
 新建模块时须完成以下检查，否则不允许合并：
 
 - [ ] 在 `docs/design/` 补充架构设计说明
-- [ ] 在 `docs/decisions/` 新增 ADR（如有技术选型）
+- [ ] 在 `docs/decisions/<version>/` 新增 ADR（如有技术选型）
 - [ ] 在本文件的"目录命名约定"中登记目录用途
 - [ ] 补充单元测试，覆盖核心逻辑
 - [ ] 在 `AGENTS.md` 的 `<available_skills>` 中注册（如为 skill 模块）

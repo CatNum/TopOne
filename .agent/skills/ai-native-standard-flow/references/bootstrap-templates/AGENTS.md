@@ -63,7 +63,7 @@ node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo 
 - `docs/design/` — 技术方案（按版本目录化；只写架构、接口、数据流、技术权衡）
 - `docs/prototype/` — 高保真原型（按版本目录化；只放 Figma、截图、录屏等可视化证据）
 - `docs/product-snapshot/` — 当前产品全量快照
-- `docs/decisions/` — 关键决策（ADR，append-only）
+- `docs/decisions/` — 关键决策（根 README + 按版本目录维护 ADR）
 - `docs/compliance/` — 合规清单 `checklist.*`（脚本）与 `progress.md`（版本进度，人主导；按产品版本子目录）
 - `openspec/` — 任务分解与变更推进规范库
 
