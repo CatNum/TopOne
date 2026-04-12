@@ -59,8 +59,9 @@ node ".agent/skills/ai-native-standard-flow/scripts/check-compliance.js" --repo 
 
 ## 文档结构
 
-- `docs/requirements/` — 需求文档（增量，按版本区块维护）
-- `docs/design/` — 架构设计（按版本目录化）
+- `docs/requirements/` — 需求文档 / PRD（增量，按版本区块维护；页面结构、交互流程、业务规则写这里）
+- `docs/design/` — 技术方案（按版本目录化；只写架构、接口、数据流、技术权衡）
+- `docs/prototype/` — 高保真原型（按版本目录化；只放 Figma、截图、录屏等可视化证据）
 - `docs/product-snapshot/` — 当前产品全量快照
 - `docs/decisions/` — 关键决策（ADR，append-only）
 - `docs/compliance/` — 合规清单 `checklist.*`（脚本）与 `progress.md`（版本进度，人主导；按产品版本子目录）

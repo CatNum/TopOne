@@ -14,6 +14,10 @@ All notable changes to this skill are documented in this file.
 - 时间：2026-04-11
 
 ### Changed
+- 背景：`docs/requirements/`、`docs/design/`、`docs/prototype/` 在部分项目中职责边界模糊，需求内容容易被写进 `design` / `prototype`。
+- 动作：在 `SKILL.md`、bootstrap 模板与 `bootstrap-templates/AGENTS.md` 中明确三类目录的“必须包含 / 不得包含”边界；强调通过初始化时的说明与模板预防错放，而不是新增正文语义检查；同步将 `prototype` 明确为高保真原型资产目录。
+- 时间：2026-04-12
+
 - 背景：`productVersion` / `currentStage` 需在 Agent 入口可见且与自动化一致。
 - 动作：`references/bootstrap-templates/AGENTS.md` 增加「当前交付状态」节，明确以 `ai-native-automation.config.json` 为权威。
 - 时间：2026-04-11
@@ -105,7 +109,6 @@ All notable changes to this skill are documented in this file.
 - 结果：检查标准统一为 skill 规则层，项目实例只填结果与证据；跨项目输出格式一致、可审计且中英文认知成本降低。
 - 影响：执行检查时需补齐负责人、下一步与更新时间，文档维护成本上升但治理质量显著提升。
 - 时间：2026-04-10
-
 
 - 背景：`ai-native-standard-flow` 作为标准流程 skill，需要更强约束与可追溯性。
 - 动作：补充强制核心仓库结构、CI 门禁分层、风险与边界、标准工作流，并统一 references 路径。
