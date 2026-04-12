@@ -1,0 +1,7 @@
+--swiftversion 6
+--indent 4
+--linebreaks lf
+--stripunusedargs closure-only
+--trimwhitespace always
+--wraparguments preserve
+--wrapcollections preserve

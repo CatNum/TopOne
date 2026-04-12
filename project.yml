@@ -1,0 +1,64 @@
+name: TopOne
+options:
+  minimumXcodeGenVersion: 2.45.3
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.catnum.topone
+    SWIFT_VERSION: 6.0
+    DEVELOPMENT_TEAM: ""
+packages: {}
+targets:
+  TopOneiOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/iOS
+      - path: App/Shared
+      - path: Domain
+      - path: Persistence
+      - path: Application
+      - path: Presentation
+    settings:
+      base:
+        INFOPLIST_FILE: App/iOS/Info.plist
+        PRODUCT_NAME: TopOne
+        PRODUCT_BUNDLE_IDENTIFIER: com.catnum.topone.ios
+        GENERATE_INFOPLIST_FILE: NO
+  TopOnemacOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: App/macOS
+      - path: App/Shared
+      - path: Domain
+      - path: Persistence
+      - path: Application
+      - path: Presentation
+      - path: PlatformAdapters/macOS
+    settings:
+      base:
+        INFOPLIST_FILE: App/macOS/Info.plist
+        PRODUCT_NAME: TopOne
+        PRODUCT_BUNDLE_IDENTIFIER: com.catnum.topone.macos
+        GENERATE_INFOPLIST_FILE: NO
+    scheme:
+      testTargets:
+        - TopOneCoreTests
+  TopOneCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/TopOneCoreTests
+    dependencies:
+      - target: TopOnemacOS
+    settings:
+      base:
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/TopOne.app/Contents/MacOS/TopOne
+        BUNDLE_LOADER: $(TEST_HOST)
+        GENERATE_INFOPLIST_FILE: YES

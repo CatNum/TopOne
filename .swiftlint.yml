@@ -1,0 +1,26 @@
+included:
+  - App
+  - Application
+  - Domain
+  - Persistence
+  - PlatformAdapters
+  - Presentation
+  - Tests
+
+excluded:
+  - TopOne.xcodeproj
+
+disabled_rules:
+  - trailing_comma
+
+opt_in_rules:
+  - empty_count
+  - first_where
+
+line_length:
+  warning: 140
+  error: 180
+
+type_name:
+  min_length: 2
+  max_length: 50

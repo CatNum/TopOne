@@ -1,0 +1,33 @@
+name: Engineering Baseline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tooling
+        run: |
+          brew install xcodegen swiftformat swiftlint
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Format check
+        run: swiftformat --lint App Application Domain Persistence PlatformAdapters Presentation Tests
+
+      - name: Lint
+        run: ./scripts/lint.sh
+
+      - name: Build
+        run: ./scripts/build.sh
+
+      - name: Test
+        run: ./scripts/test.sh
