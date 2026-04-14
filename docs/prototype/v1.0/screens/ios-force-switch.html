@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#e9c400",
+                    "outline-variant": "#c5c6cd",
+                    "on-primary-fixed": "#111c2d",
+                    "secondary-container": "#d5e3fd",
+                    "secondary": "#515f74",
+                    "primary-container": "#f0f4f8",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#fbf8fa",
+                    "surface-variant": "#e4e2e3",
+                    "inverse-on-surface": "#f3f0f2",
+                    "on-surface-variant": "#45474c",
+                    "outline": "#75777d",
+                    "surface-container-highest": "#e4e2e3",
+                    "tertiary-fixed": "#ffe16d",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-tertiary-fixed": "#221b00",
+                    "tertiary-container": "#c9a900",
+                    "surface-dim": "#dcd9db",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed": "#d5e3fd",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1b1b1d",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-container-high": "#eae7e9",
+                    "primary-fixed": "#d8e3fb",
+                    "on-tertiary-fixed-variant": "#544600",
+                    "on-tertiary-container": "#4c3f00",
+                    "error": "#ba1a1a",
+                    "tertiary": "#705d00",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#57657b",
+                    "primary": "#091426",
+                    "surface": "#ffffff",
+                    "inverse-surface": "#303032",
+                    "surface-tint": "#545f73",
+                    "surface-container-low": "#f5f3f4",
+                    "on-primary-container": "#1e293b",
+                    "surface-container": "#f0edef",
+                    "on-surface": "#1b1b1d",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#bcc7de",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "background": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .vignette-overlay {
+            background: radial-gradient(circle, transparent 40%, rgba(240, 244, 248, 0.4) 100%);
+        }
+        .text-glow {
+            text-shadow: 0 0 20px rgba(112, 93, 0, 0.1);
+        }
+        .help-tooltip:hover .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col items-center justify-center p-6 selection:bg-tertiary-fixed selection:text-on-tertiary-fixed">
+<!-- Background Layering -->
+<div class="fixed inset-0 z-0 bg-surface overflow-hidden">
+<div class="absolute inset-0 vignette-overlay"></div>
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-fixed/30 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-tertiary-fixed/20 rounded-full blur-[80px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 w-full max-w-2xl flex flex-col items-center">
+<!-- Context Header -->
+<header class="mb-12 text-center">
+<span class="text-tertiary text-xs font-bold tracking-[0.2em] uppercase mb-4 block">Confession of Absence</span>
+<h1 class="text-3xl md:text-5xl font-extrabold tracking-tighter text-primary mb-2">确定放弃吗</h1>
+<p class="text-on-surface-variant text-sm md:text-base font-medium max-w-md mx-auto opacity-80">
+            放弃是一种选择，但所有选择都有其沉重的回响。
+        </p>
+</header>
+<!-- Focus Input Area: The "Burden" Card -->
+<section class="w-full bg-surface-container-low/80 backdrop-blur-xl p-1 rounded-3xl mb-8 group transition-all duration-700 hover:bg-surface-container-low border border-outline-variant/30 shadow-sm">
+<div class="bg-surface p-8 rounded-[1.4rem] flex flex-col gap-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-tertiary text-lg" data-icon="edit_note">edit_note</span>
+<label class="text-on-surface-variant text-xs font-bold tracking-widest uppercase" for="reason">放弃理由</label>
+</div>
+<textarea class="w-full bg-transparent border-none p-0 text-on-surface text-lg leading-relaxed placeholder:text-outline/40 focus:ring-0 resize-none font-medium" id="reason" name="reason" placeholder="请输入放弃理由（最少 50 字）" rows="8"></textarea>
+<!-- Status Progress -->
+<div class="flex justify-between items-end pt-6 border-t border-outline-variant/30">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 mb-1 group/help help-tooltip relative cursor-help">
+<span class="text-[10px] text-on-surface-variant/70 uppercase tracking-tighter">Required Depth</span>
+<span class="material-symbols-outlined text-[14px] text-outline" data-icon="help">help</span>
+<!-- Tooltip -->
+<div class="tooltip-content absolute bottom-full left-0 mb-2 w-64 p-3 bg-inverse-surface text-inverse-on-surface text-[11px] rounded-lg opacity-0 visibility-hidden transition-all duration-300 transform translate-y-1 shadow-xl z-20 font-normal leading-relaxed">
+                            初始字数：50字。<br/>
+                            失败/中途放弃：要求翻倍（上限500字）。<br/>
+                            成功完成：要求减半（下限50字）。
+                        </div>
+</div>
+<span class="text-primary font-mono text-sm tracking-widest">0 / 50</span>
+</div>
+<div class="w-32 h-1.5 bg-surface-container-highest rounded-full overflow-hidden mb-1">
+<div class="w-1/12 h-full bg-tertiary rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Warning Section -->
+<section class="w-full max-w-lg mb-12">
+<div class="flex flex-col items-center text-center p-6 rounded-2xl bg-error/5 border border-error/10">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-error text-xl" data-icon="warning">warning</span>
+<span class="text-error font-bold text-xs tracking-widest uppercase">代价与惩罚</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium leading-relaxed">
+                由于放弃未完成的任务，下次更换门槛将<span class="text-error font-extrabold mx-1">翻倍</span>。<br/>
+<span class="opacity-70">当前惩罚字数：</span><span class="text-primary font-mono font-bold ml-1">100</span>
+</p>
+</div>
+</section>
+<!-- Action Matrix -->
+<div class="flex flex-col md:flex-row gap-4 w-full max-w-md">
+<button class="flex-1 py-5 px-8 rounded-full bg-primary text-on-primary font-bold text-sm tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 group">
+<span class="material-symbols-outlined text-lg" data-icon="auto_awesome">auto_awesome</span>
+            再坚持一下
+        </button>
+<button class="flex-1 py-5 px-8 rounded-full bg-transparent text-on-surface-variant font-semibold text-sm tracking-wide border border-outline-variant transition-all duration-300 hover:bg-error hover:text-on-error hover:border-error active:scale-95 flex items-center justify-center gap-2 group">
+            确定放弃
+            <span class="material-symbols-outlined text-lg opacity-40 group-hover:opacity-100" data-icon="close">close</span>
+</button>
+</div>
+</main>
+<!-- Subtle Footer Ornament -->
+<footer class="fixed bottom-8 z-10 w-full text-center px-6">
+<p class="text-[10px] text-outline/50 tracking-[0.3em] uppercase">The Disciplined Curator — Discipline is Freedom</p>
+</footer>
+</body></html>

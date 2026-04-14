@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>太棒了！庆祝你的成就</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#ffffff",
+                    "on-surface": "#1b1b1d",
+                    "on-error-container": "#93000a",
+                    "surface": "#fbf8fa",
+                    "on-secondary-container": "#57657b",
+                    "inverse-primary": "#bcc7de",
+                    "tertiary-fixed-dim": "#e9c400",
+                    "outline-variant": "#c5c6cd",
+                    "surface-dim": "#dcd9db",
+                    "primary-container": "#1e293b",
+                    "primary": "#091426",
+                    "secondary-container": "#d5e3fd",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "secondary": "#515f74",
+                    "inverse-surface": "#303032",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-tertiary-fixed": "#221b00",
+                    "surface-container-highest": "#e4e2e3",
+                    "on-tertiary-fixed-variant": "#544600",
+                    "tertiary": "#705d00",
+                    "on-primary-fixed": "#111c2d",
+                    "on-tertiary-container": "#4c3f00",
+                    "surface-container-high": "#eae7e9",
+                    "background": "#fbf8fa",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#d8e3fb",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e4e2e3",
+                    "on-error": "#ffffff",
+                    "outline": "#75777d",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container": "#f0edef",
+                    "secondary-fixed": "#d5e3fd",
+                    "on-primary-container": "#8590a6",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "surface-container-low": "#f5f3f4",
+                    "inverse-on-surface": "#f3f0f2",
+                    "tertiary-container": "#c9a900",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#ffe16d",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-surface-variant": "#45474c",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-bright": "#fbf8fa",
+                    "on-background": "#1b1b1d",
+                    "surface-tint": "#545f73"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            },
+            "animation": {
+                'float': 'float 3s ease-in-out infinite',
+                'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
+                'shine': 'shine 2s linear infinite',
+                'confetti-fall': 'confetti-fall 4s linear infinite',
+            },
+            "keyframes": {
+                float: {
+                    '0%, 100%': { transform: 'translateY(0px)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                },
+                'pulse-slow': {
+                    '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                    '50%': { opacity: '0.7', transform: 'scale(1.05)' },
+                },
+                shine: {
+                    '0%': { transform: 'translateX(-100%)' },
+                    '100%': { transform: 'translateX(100%)' },
+                },
+                'confetti-fall': {
+                    '0%': { transform: 'translateY(-10%) rotate(0deg)', opacity: '0' },
+                    '10%': { opacity: '1' },
+                    '100%': { transform: 'translateY(110vh) rotate(360deg)', opacity: '0' },
+                }
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-confetti-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            animation: confetti-fall linear infinite;
+        }
+        .gold-glow {
+            box-shadow: 0 0 40px 0 rgba(112, 93, 0, 0.25);
+        }
+        .card-shine-effect {
+            background: linear-gradient(
+                45deg,
+                transparent 25%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 75%
+            );
+            background-size: 200% 200%;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen selection:bg-tertiary/30 overflow-x-hidden">
+<!-- Celebration Background Particles -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" id="confetti-container">
+<!-- Generated Particles via Inline CSS positioning -->
+<div class="bg-confetti-particle bg-tertiary" style="left: 10%; animation-duration: 3.5s; animation-delay: 0s;"></div>
+<div class="bg-confetti-particle bg-secondary" style="left: 25%; animation-duration: 4.2s; animation-delay: 1.2s;"></div>
+<div class="bg-confetti-particle bg-primary-container" style="left: 40%; animation-duration: 3.8s; animation-delay: 0.5s;"></div>
+<div class="bg-confetti-particle bg-tertiary-fixed-dim" style="left: 60%; animation-duration: 4.5s; animation-delay: 2.1s;"></div>
+<div class="bg-confetti-particle bg-secondary-container" style="left: 80%; animation-duration: 3.2s; animation-delay: 0.8s;"></div>
+<div class="bg-confetti-particle bg-tertiary" style="left: 90%; animation-duration: 5s; animation-delay: 1.5s;"></div>
+<div class="bg-confetti-particle bg-primary" style="left: 15%; animation-duration: 4s; animation-delay: 3s;"></div>
+<div class="bg-confetti-particle bg-tertiary-fixed" style="left: 75%; animation-duration: 3.6s; animation-delay: 0.2s;"></div>
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fbf8fa]/80 dark:bg-[#091426]/80 backdrop-blur-md">
+<div class="flex items-center justify-between px-6 h-16 w-full max-w-screen-xl mx-auto">
+<button class="text-[#091426] dark:text-[#fbf8fa] hover:opacity-70 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-[#091426] dark:text-[#fbf8fa] font-['Inter'] tracking-tight text-lg font-semibold">成就时刻</h1>
+<div class="w-6"></div>
+</div>
+</header>
+<main class="relative pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen overflow-hidden z-10">
+<!-- Energetic Ambient Glows -->
+<div class="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-tertiary/20 blur-[80px] rounded-full pointer-events-none animate-pulse-slow"></div>
+<div class="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[350px] h-[350px] bg-primary-container/15 blur-[100px] rounded-full pointer-events-none animate-pulse-slow" style="animation-delay: 1s;"></div>
+<section class="relative z-10 w-full max-w-md flex flex-col items-center">
+<!-- Enthusiastic Editorial Header -->
+<div class="text-center mb-10 scale-in-center">
+<p class="text-tertiary font-bold uppercase tracking-[0.25em] text-[10px] mb-3 animate-bounce">荣耀揭晓</p>
+<h2 class="text-4xl font-headline font-extrabold tracking-tighter text-primary leading-tight">太棒了！<br/>这是属于你的时刻</h2>
+</div>
+<!-- The Result Card (Enhanced Energy & Glow) -->
+<div class="w-full bg-white/60 backdrop-blur-2xl rounded-[2.5rem] p-1.5 shadow-[0_40px_80px_-20px_rgba(9,20,38,0.15)] relative overflow-hidden group animate-float gold-glow">
+<!-- Animated Inner Border -->
+<div class="absolute inset-0 border-[3px] border-tertiary/20 rounded-[2.5rem]"></div>
+<div class="bg-white/80 rounded-[2.25rem] p-8 flex flex-col items-center text-center relative overflow-hidden">
+<!-- Shine overlay -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-shine transition-transform duration-1000"></div>
+</div>
+<!-- Rank Badge -->
+<div class="mb-8 px-5 py-1.5 bg-gradient-to-r from-primary to-[#1e293b] text-white rounded-full text-xs font-black tracking-widest uppercase shadow-lg shadow-primary/20">
+                    等级 S • 完美达成
+                </div>
+<!-- Reward Icon Container -->
+<div class="w-32 h-32 mb-8 rounded-full bg-surface-container-low flex items-center justify-center relative shadow-inner">
+<div class="absolute inset-0 rounded-full bg-gradient-to-b from-tertiary/10 to-transparent"></div>
+<span class="material-symbols-outlined text-6xl text-tertiary drop-shadow-sm" data-icon="restaurant" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<!-- Concentric Energy Rings -->
+<div class="absolute inset-0 rounded-full border-2 border-tertiary/20 animate-ping" style="animation-duration: 3s;"></div>
+<div class="absolute -inset-4 rounded-full border border-tertiary/10"></div>
+</div>
+<!-- Reward Content -->
+<h3 class="text-3xl font-headline font-black text-primary tracking-tight mb-3">一顿丰盛的晚餐</h3>
+<p class="text-on-surface-variant text-sm max-w-[260px] leading-relaxed mb-6">
+                    在城市最顶级的餐厅享受极致的烹饪艺术，以此庆祝你的非凡自律。
+                </p>
+<!-- Binding Concept Text -->
+<div class="mb-8 px-4 py-2 bg-secondary-container/30 rounded-xl border border-secondary-container/50">
+<p class="text-[10px] text-on-secondary-container font-medium">
+                        此奖励已永久存入《<span class="font-bold">深度自律马拉松</span>》的成就档案
+                    </p>
+</div>
+<!-- Actions -->
+<div class="w-full space-y-4">
+<button class="relative w-full h-16 group overflow-hidden bg-primary text-on-primary rounded-2xl font-bold tracking-wide shadow-[0_12px_24px_-8px_rgba(9,20,38,0.4)] active:scale-95 transition-all duration-200">
+<span class="relative z-10 flex items-center justify-center gap-2">
+                            立即领取奖励 <span class="material-symbols-outlined text-xl">celebration</span>
+</span>
+<!-- Button Glow Effect -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shine"></div>
+</button>
+<button class="w-full h-14 bg-surface text-secondary font-semibold tracking-tight border-2 border-secondary-container/50 rounded-2xl hover:bg-secondary-container/20 transition-colors active:scale-[0.98]">
+                        在奖励池查看更多
+                    </button>
+</div>
+</div>
+</div>
+<!-- Subtle Footnote -->
+<p class="mt-12 text-on-surface-variant/50 text-[10px] font-bold tracking-[0.2em] text-center uppercase flex items-center justify-center gap-2">
+<span class="w-8 h-[1px] bg-outline-variant/30"></span>
+            请在月底前完成兑换
+            <span class="w-8 h-[1px] bg-outline-variant/30"></span>
+</p>
+</section>
+</main>
+<!-- Visual Depth Background Image -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+<div class="absolute inset-0 bg-[#fbf8fa]"></div>
+<img alt="" class="w-full h-full object-cover blur-2xl opacity-[0.15] scale-110 rotate-12" data-alt="vibrant abstract background with golden particles and dark navy accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAA6iW0tldEzEtw0EW-TEvyckX7KgSO8gmAhydibqT5o0kVAnzKk1E_LLC2azJLtzhtQSs8gpG38hk7fgWuJ2lmswXqNuS6d0awaosCDOYXuGgBul4d1iBnOlc3B0YARJ6tGYfNynf7xw0lK3hg-dZjXhdOq0Acz-5nkbQj0C7XCu1ggJ1q3RP7aV-jUNgGwovHTvxOylFQeR9eRTG5FsX8i_CF5JpxveZzV_CgzwbI8neGVUjPXMdSKmto4MSzCbxT2Rj0EwLRnyw"/>
+<!-- Subtle Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white/80"></div>
+</div>
+</body></html>

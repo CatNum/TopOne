@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#303032",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "tertiary-container": "#c9a900",
+                    "on-tertiary-container": "#4c3f00",
+                    "secondary": "#515f74",
+                    "surface-container-high": "#eae7e9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8fa",
+                    "surface-tint": "#545f73",
+                    "inverse-primary": "#bcc7de",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-dim": "#dcd9db",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#705d00",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c5c6cd",
+                    "on-secondary-container": "#57657b",
+                    "on-tertiary-fixed-variant": "#544600",
+                    "secondary-fixed": "#d5e3fd",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#fbf8fa",
+                    "primary-fixed": "#d8e3fb",
+                    "surface-variant": "#e4e2e3",
+                    "outline": "#75777d",
+                    "on-primary-container": "#8590a6",
+                    "surface-container-highest": "#e4e2e3",
+                    "on-background": "#1b1b1d",
+                    "primary-container": "#1e293b",
+                    "inverse-on-surface": "#f3f0f2",
+                    "surface-container": "#f0edef",
+                    "tertiary-fixed-dim": "#e9c400",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fbf8fa",
+                    "on-surface": "#1b1b1d",
+                    "on-surface-variant": "#45474c",
+                    "on-tertiary-fixed": "#221b00",
+                    "tertiary-fixed": "#ffe16d",
+                    "primary-fixed-dim": "#bcc7de",
+                    "surface-container-low": "#f5f3f4",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "on-primary-fixed": "#111c2d",
+                    "secondary-container": "#d5e3fd",
+                    "primary": "#091426",
+                    "error": "#ba1a1a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ios-toggle:checked + .ios-toggle-label {
+            background-color: #091426;
+        }
+        .ios-toggle:checked + .ios-toggle-label::after {
+            transform: translateX(1.25rem);
+        }
+    </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#fbf8fa]/80 backdrop-blur-xl shadow-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#091426]" data-icon="blur_on">blur_on</span>
+<h1 class="text-lg font-bold tracking-[-0.02em] text-[#091426]">The Disciplined Curator</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#091426]" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto">
+<!-- Header Section -->
+<div class="mb-10">
+<h2 class="text-3xl font-extrabold tracking-tight text-primary mb-2">设置</h2>
+<p class="text-on-surface-variant text-sm">优化你的环境，实现极致专注。</p>
+</div>
+<!-- Settings List Container -->
+<div class="flex flex-col gap-8">
+<!-- Section: Synchronization -->
+<section>
+<h3 class="text-[11px] font-semibold uppercase tracking-[0.15em] text-on-surface-variant px-4 mb-3">数据同步</h3>
+<div class="bg-surface-container-low rounded-3xl overflow-hidden">
+<!-- Sync Row -->
+<div class="flex items-center justify-between px-6 py-5 hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="cloud_sync">cloud_sync</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-primary">通过服务器同步</p>
+<p class="text-xs text-on-surface-variant">上次同步于 2 分钟前</p>
+</div>
+</div>
+<div class="relative inline-block w-11 h-6">
+<input checked="" class="ios-toggle hidden" id="sync-toggle" type="checkbox"/>
+<label class="ios-toggle-label absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-outline-variant transition-all duration-300 rounded-full after:content-[''] after:absolute after:h-5 after:w-5 after:left-0.5 after:bottom-0.5 after:bg-white after:transition-all after:duration-300 after:rounded-full shadow-sm" for="sync-toggle"></label>
+</div>
+</div>
+<!-- Local Storage Row -->
+<div class="flex items-center justify-between px-6 py-5 hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="database">database</span>
+</div>
+<div>
+<p class="text-sm font-semibold text-primary">本地存储状态</p>
+<p class="text-xs text-on-surface-variant">12.4 MB of 50 MB used</p>
+</div>
+</div>
+<span class="text-xs font-medium text-tertiary">良好</span>
+</div>
+</div>
+</section>
+<!-- Section: App Preferences -->
+<section>
+<h3 class="text-[11px] font-semibold uppercase tracking-[0.15em] text-on-surface-variant px-4 mb-3">应用偏好</h3>
+<div class="bg-surface-container-low rounded-3xl overflow-hidden">
+<!-- Theme Row -->
+<div class="flex items-center justify-between px-6 py-5 hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="palette">palette</span>
+</div>
+<p class="text-sm font-semibold text-primary">主题</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-on-surface-variant">浅色模式</span>
+<span class="material-symbols-outlined text-outline-variant text-sm" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Notifications Row -->
+<div class="flex items-center justify-between px-6 py-5 hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</div>
+<p class="text-sm font-semibold text-primary">通知</p>
+</div>
+<div class="relative inline-block w-11 h-6">
+<input checked="" class="ios-toggle hidden" id="notif-toggle" type="checkbox"/>
+<label class="ios-toggle-label absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-outline-variant transition-all duration-300 rounded-full after:content-[''] after:absolute after:h-5 after:w-5 after:left-0.5 after:bottom-0.5 after:bg-white after:transition-all after:duration-300 after:rounded-full shadow-sm" for="notif-toggle"></label>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: About -->
+<section>
+<h3 class="text-[11px] font-semibold uppercase tracking-[0.15em] text-on-surface-variant px-4 mb-3">关于</h3>
+<div class="bg-surface-container-low rounded-3xl overflow-hidden">
+<div class="flex items-center justify-between px-6 py-5 hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="info">info</span>
+</div>
+<p class="text-sm font-semibold text-primary">版本</p>
+</div>
+<span class="text-xs text-on-surface-variant">2.4.0 (专注版)</span>
+</div>
+<div class="flex items-center justify-between px-6 py-5 hover:bg-surface-container-high transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="policy">policy</span>
+</div>
+<p class="text-sm font-semibold text-primary">隐私政策</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-sm" data-icon="open_in_new">open_in_new</span>
+</div>
+</div>
+</section>
+<!-- Logout Button -->
+<button class="mt-4 w-full py-5 px-6 rounded-3xl bg-surface-container-lowest text-error font-semibold text-sm flex items-center justify-center gap-2 hover:bg-error-container/10 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="logout">logout</span>
+                退出登录
+            </button>
+<!-- Decorative Visual -->
+<div class="mt-8 opacity-20 grayscale">
+<img class="w-full h-32 object-cover rounded-3xl" data-alt="minimalist architectural detail of a concrete curved wall with dramatic shadows and clean lines for an editorial aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA48Z5k27EiDBFJLKq5jmI2_D7bjs0ffrsk-2RVRo1l64S8e_Zs1eQCokJh9EBH495eVoHzbiR3xxdNvmwrBWqZNVr35CN47T6_fzvkYx96AYc_t-Y8J8qRwABnQsMjhYH2bQglRJrifKfiDekINIsl1HsQgkv94fwZkImhmEfji1eYYELtfvzqF1p05sIcoIBLJA0l0e119w8We5kA0kzB86uCD7Kdu8dx-r-LNo80I9fVGNT6-kSViF7zc5fC7ZC5kTwDCZhFdCY"/>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#f5f3f4] rounded-t-[1.5rem] shadow-[0_-4px_24px_rgba(9,20,38,0.06)] tonal-bg-shift-no-borders">
+<!-- Tasks -->
+<a class="flex flex-col items-center justify-center text-[#45474c] px-5 py-2 hover:bg-[#e4e2e3] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="checklist">checklist</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest">任务</span>
+</a>
+<!-- Rewards -->
+<a class="flex flex-col items-center justify-center text-[#45474c] px-5 py-2 hover:bg-[#e4e2e3] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="stars">stars</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest">奖励</span>
+</a>
+<!-- Settings (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#091426] text-[#fbf8fa] rounded-xl px-5 py-2 scale-105 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest">设置</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#e9c400",
+                    "outline-variant": "#c5c6cd",
+                    "on-primary-fixed": "#111c2d",
+                    "secondary-container": "#d5e3fd",
+                    "secondary": "#515f74",
+                    "primary-container": "#1e293b",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "surface-bright": "#fbf8fa",
+                    "surface-variant": "#e4e2e3",
+                    "inverse-on-surface": "#f3f0f2",
+                    "on-surface-variant": "#45474c",
+                    "outline": "#75777d",
+                    "surface-container-highest": "#e4e2e3",
+                    "tertiary-fixed": "#ffe16d",
+                    "primary-fixed-dim": "#bcc7de",
+                    "on-tertiary-fixed": "#221b00",
+                    "tertiary-container": "#c9a900",
+                    "surface-dim": "#dcd9db",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed": "#d5e3fd",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1b1b1d",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-container-high": "#eae7e9",
+                    "primary-fixed": "#d8e3fb",
+                    "on-tertiary-fixed-variant": "#544600",
+                    "on-tertiary-container": "#4c3f00",
+                    "error": "#ba1a1a",
+                    "tertiary": "#705d00",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#57657b",
+                    "primary": "#091426",
+                    "surface": "#fbf8fa",
+                    "inverse-surface": "#303032",
+                    "surface-tint": "#545f73",
+                    "surface-container-low": "#f5f3f4",
+                    "on-primary-container": "#8590a6",
+                    "surface-container": "#f0edef",
+                    "on-surface": "#1b1b1d",
+                    "on-error": "#ffffff",
+                    "inverse-primary": "#bcc7de",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "background": "#fbf8fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "1rem",
+                    "3xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(251, 248, 250, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .top-one-gradient {
+            background: linear-gradient(135deg, #091426 0%, #1e293b 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col items-center">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#fbf8fa]/80 dark:bg-[#091426]/80 backdrop-blur-md flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#f5f3f4] dark:hover:bg-[#1e293b] p-2 rounded-full duration-200">
+<span class="material-symbols-outlined text-[#091426] dark:text-[#fbf8fa]">menu</span>
+</button>
+<h1 class="text-xl font-bold tracking-[-0.02em] text-[#091426] dark:text-[#fbf8fa]">TopOne</h1>
+</div>
+<div class="flex items-center gap-3">
+<img alt="User profile" class="w-8 h-8 rounded-full border border-outline-variant/20" data-alt="Close-up professional portrait of a person with a clean aesthetic, soft studio lighting, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeASt-heKWarTx2TjqzF4iGgs7ojtumQdRNh9rvfRsYwlwfx_-TmtRfY58dSmtClcI9OhJu3kWzoZ7eszFWvyzhGLoLy4-9vthFbOho8UJbv7uvTuylK4C7RJ7F9R8zDAQrUpb4tfMujsEEvRDTW4dPDpi8n8MqsQjLgVbpcFG1JBsqxpp1up33COtSQZuAfPST-DXqR9Rvz6CzTo-WaH1cK8D5wG8VdUqWx0-rYsE16Ww9kzKS00-ga6IepUHFQGuni5SfaxQOnc"/>
+</div>
+</header>
+<main class="w-full max-w-md px-6 pt-24 pb-32 flex flex-col gap-8">
+<!-- Today's Focus Section -->
+<section class="flex flex-col gap-4">
+<div class="flex items-baseline justify-between">
+<h2 class="text-on-surface-variant font-medium tracking-wide text-sm">今日核心</h2>
+<span class="text-xs text-on-surface-variant/60">06月12日 · 周三</span>
+</div>
+<!-- The 'Top One' Hero Card -->
+<div class="top-one-gradient rounded-3xl p-8 relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary"></div>
+<div class="relative z-10">
+<span class="text-tertiary-fixed-dim text-xs font-bold tracking-[0.2em] mb-3 block">CURRENT FOCUS</span>
+<h3 class="text-on-primary text-2xl font-bold tracking-tight leading-snug mb-2">掌握 Swift 并发编程模型</h3>
+<p class="text-on-primary-container text-sm leading-relaxed mb-6">完成《Swift Concurrency by Example》第三章的学习并编写 Demo。</p>
+<button class="bg-tertiary-fixed-dim text-on-tertiary-fixed font-bold py-3 px-8 rounded-full shadow-lg shadow-tertiary/20 hover:scale-105 active:scale-95 transition-all duration-300">
+                        专注
+                    </button>
+</div>
+<!-- Subtle Decorative Element -->
+<div class="absolute -right-12 -bottom-12 w-48 h-48 bg-tertiary/5 rounded-full blur-3xl group-hover:bg-tertiary/10 duration-700"></div>
+</div>
+</section>
+<!-- Tasks Grid (Asymmetric Layout) -->
+<section class="grid grid-cols-2 gap-4">
+<div class="col-span-2 surface-container-low p-6 rounded-3xl">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-lg">military_tech</span>
+<span class="text-sm font-semibold">长期挑战</span>
+</div>
+<span class="text-[10px] bg-white px-2 py-0.5 rounded-full text-on-surface-variant">进行中</span>
+</div>
+<p class="text-on-surface font-medium text-lg leading-tight mb-1">精读《计算机系统：程序员视角》</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-surface-variant rounded-full overflow-hidden">
+<div class="w-1/3 h-full bg-primary"></div>
+</div>
+<span class="text-[10px] text-on-surface-variant font-mono">12/30d</span>
+</div>
+</div>
+<div class="surface-container-low p-5 rounded-3xl flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary/40 text-2xl">check_circle</span>
+<p class="text-sm font-medium text-on-surface-variant">日常锻炼 (45min)</p>
+</div>
+<div class="surface-container-low p-5 rounded-3xl flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary/40 text-2xl">history_edu</span>
+<p class="text-sm font-medium text-on-surface-variant">每日复盘笔记</p>
+</div>
+</section>
+</main>
+<!-- Modal Overlay (Active State) -->
+<div class="fixed inset-0 z-[60] flex items-center justify-center px-6">
+<div class="absolute inset-0 bg-primary/20 backdrop-blur-sm"></div>
+<!-- Focus Confirmation Modal -->
+<div class="glass-panel w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300 border border-white/20">
+<div class="flex flex-col items-center text-center mb-8">
+<div class="w-16 h-16 bg-primary-container/10 rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<h4 class="text-xl font-bold text-on-surface tracking-tight mb-2">确认选择此长期任务？</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed">一旦开始，我们建议您保持节奏，每日精进一点。</p>
+</div>
+<div class="space-y-6">
+<!-- Period Selection -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-center gap-1.5 mb-1">
+<span class="text-[11px] font-bold text-on-surface-variant/60 tracking-widest uppercase">选择承诺周期</span>
+<div class="group relative">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant/40 cursor-help hover:text-on-surface-variant transition-colors">help</span>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-inverse-surface text-inverse-on-surface leading-relaxed rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl text-[12px]">建议锁定周期以建立连贯的执行力。通过设定明确的时间锚点，您能更好地维持专注节奏。<br/><br/><span class="text-on-surface-variant/80 font-medium">特别注明：在锁定周期内提前更换任务需填写更换理由，以此帮助自己复盘专注过程。</span>
+<div class="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-inverse-surface"></div></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<button class="py-3 px-4 rounded-2xl bg-primary text-on-primary text-sm font-semibold duration-200">7 天</button>
+<button class="py-3 px-4 rounded-2xl bg-surface-container-high text-on-surface-variant text-sm font-medium hover:bg-surface-variant duration-200">14 天</button>
+<button class="py-3 px-4 rounded-2xl bg-surface-container-high text-on-surface-variant text-sm font-medium hover:bg-surface-variant duration-200">30 天</button>
+<button class="py-3 px-4 rounded-2xl bg-surface-container-high text-on-surface-variant text-sm font-medium hover:bg-surface-variant duration-200">自定义</button>
+</div>
+</div>
+<!-- Commitment Button -->
+<button class="w-full top-one-gradient text-on-primary py-4 rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] duration-300 flex items-center justify-center gap-2">
+<span>确认承诺</span>
+<span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<button class="w-full text-on-surface-variant text-sm font-medium py-2 hover:text-on-surface duration-200">
+                    稍后再说
+                </button>
+</div>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-3xl bg-[#fbf8fa]/80 dark:bg-[#091426]/80 backdrop-blur-md shadow-[0_-4px_24px_rgba(9,20,38,0.06)] flex justify-around items-center h-20 w-full px-8 pb-4">
+<a class="flex flex-col items-center justify-center text-[#091426] dark:text-[#ffffff] bg-[#f5f3f4] dark:bg-[#1e293b] rounded-full px-5 py-1 scale-90 duration-300 cubic-bezier(0.2,0.8,0.2,1)" href="#">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+<span class="text-[11px] font-medium tracking-wide">任务</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#45474c] dark:text-[#c5c6cd] opacity-60 hover:opacity-100 scale-90 duration-300 cubic-bezier(0.2,0.8,0.2,1)" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="text-[11px] font-medium tracking-wide">奖励</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#45474c] dark:text-[#c5c6cd] opacity-60 hover:opacity-100 scale-90 duration-300 cubic-bezier(0.2,0.8,0.2,1)" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[11px] font-medium tracking-wide">设置</span>
+</a>
+</nav>
+</body></html>

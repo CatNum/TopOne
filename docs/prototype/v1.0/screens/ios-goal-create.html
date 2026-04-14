@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>专注的策展人 - 任务精炼</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#303032",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "tertiary-container": "#c9a900",
+                    "on-tertiary-container": "#4c3f00",
+                    "secondary": "#515f74",
+                    "surface-container-high": "#eae7e9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8fa",
+                    "surface-tint": "#545f73",
+                    "inverse-primary": "#bcc7de",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-dim": "#dcd9db",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#705d00",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c5c6cd",
+                    "on-secondary-container": "#57657b",
+                    "on-tertiary-fixed-variant": "#544600",
+                    "secondary-fixed": "#d5e3fd",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#fbf8fa",
+                    "primary-fixed": "#d8e3fb",
+                    "surface-variant": "#e4e2e3",
+                    "outline": "#75777d",
+                    "on-primary-container": "#8590a6",
+                    "surface-container-highest": "#e4e2e3",
+                    "on-background": "#1b1b1d",
+                    "primary-container": "#1e293b",
+                    "inverse-on-surface": "#f3f0f2",
+                    "surface-container": "#f0edef",
+                    "tertiary-fixed-dim": "#e9c400",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fbf8fa",
+                    "on-surface": "#1b1b1d",
+                    "on-surface-variant": "#45474c",
+                    "on-tertiary-fixed": "#221b00",
+                    "tertiary-fixed": "#ffe16d",
+                    "primary-fixed-dim": "#bcc7de",
+                    "surface-container-low": "#f5f3f4",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "on-primary-fixed": "#111c2d",
+                    "secondary-container": "#d5e3fd",
+                    "primary": "#091426",
+                    "error": "#ba1a1a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .intent-bar {
+            width: 4px;
+            background-color: #705d00;
+        }
+        .focus-pulse {
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(circle, rgba(233, 196, 0, 0.08) 0%, transparent 70%);
+            z-index: -1;
+        }
+        /* Custom segment toggle styles */
+        .segmented-control input:checked + label {
+            background-color: #091426;
+            color: white;
+        }
+        /* Handle conditional visibility based on radio buttons */
+        #long_term:checked ~ .secondary-fields-container .daily-task-fields {
+            display: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-tertiary-fixed selection:text-on-tertiary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#fbf8fa]/80 dark:bg-[#091426]/80 backdrop-blur-xl no-border shadow-none">
+<div class="flex items-center gap-2 transition-opacity hover:opacity-80 cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#091426] dark:text-[#fbf8fa]" data-icon="blur_on">blur_on</span>
+</div>
+<h1 class="font-['Inter'] tracking-tight antialiased text-lg font-bold tracking-[-0.02em] text-[#091426] dark:text-[#fbf8fa]">The Disciplined Curator</h1>
+<div class="flex items-center gap-2 transition-opacity hover:opacity-80 cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#091426] dark:text-[#fbf8fa]" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto">
+<!-- Viewport Header -->
+<section class="mb-8">
+<div class="flex items-center gap-4 mb-2">
+<span class="text-tertiary font-medium tracking-widest text-[11px] uppercase">任务精炼</span>
+<div class="h-px flex-grow bg-surface-variant/30"></div>
+</div>
+<h2 class="text-4xl font-extrabold tracking-tight text-primary">确定你的头等大事</h2>
+<p class="text-on-surface-variant mt-2 max-w-md leading-relaxed">卓越源于专注。剥离杂音，探寻本质。</p>
+</section>
+<!-- Main Form Container -->
+<div class="relative">
+<div class="focus-pulse"></div>
+<form class="space-y-10">
+<!-- Task Type Selection (Segmented Control) -->
+<div class="bg-surface-container-low rounded-[1.5rem] p-1 flex segmented-control relative z-10">
+<input checked="" class="hidden task-type-daily" id="daily" name="task_type" type="radio"/>
+<label class="flex-1 text-center py-3 rounded-2xl text-sm font-bold cursor-pointer transition-all duration-200 text-on-surface-variant" for="daily">日常任务</label>
+<input class="hidden task-type-long-term" id="long_term" name="task_type" type="radio"/>
+<label class="flex-1 text-center py-3 rounded-2xl text-sm font-bold cursor-pointer transition-all duration-200 text-on-surface-variant" for="long_term">长期任务</label>
+</div>
+<!-- Intent Section -->
+<div class="bg-primary rounded-[1.5rem] p-8 shadow-2xl overflow-hidden relative">
+<div class="absolute left-0 top-0 bottom-0 intent-bar"></div>
+<div class="space-y-6">
+<div class="space-y-1">
+<label class="text-on-primary-container text-[11px] font-bold uppercase tracking-widest">核心目标</label>
+<input class="w-full bg-transparent border-none text-white text-2xl font-bold tracking-[-0.02em] placeholder:text-on-primary-container/40 focus:ring-0 p-0" placeholder="输入任务名称..." type="text"/>
+<div class="h-[2px] w-full bg-on-primary-container/20 group-focus-within:bg-tertiary transition-colors"></div>
+</div>
+</div>
+</div>
+<div class="secondary-fields-container space-y-10">
+<!-- Secondary Fields -->
+<div class="bg-surface-container-low rounded-[1.5rem] p-8 space-y-10">
+<!-- Description -->
+<div class="space-y-3">
+<label class="text-on-surface-variant text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="notes">notes</span>
+                                上下文详情
+                            </label>
+<textarea class="w-full bg-transparent border-none text-on-surface text-lg leading-relaxed placeholder:text-on-surface-variant/40 focus:ring-0 p-0 resize-none" placeholder="为什么这件事很重要？唯一的产出是什么？" rows="3"></textarea>
+<div class="h-[1px] w-full bg-outline-variant/30"></div>
+</div>
+<!-- Rank/Level Selection -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<label class="text-on-surface-variant text-[11px] font-bold uppercase tracking-widest">纪律等级</label>
+<div class="flex gap-2">
+<button class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg bg-surface-container-highest text-primary hover:bg-tertiary-fixed transition-all duration-300 active:scale-90" type="button">S</button>
+<button class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg bg-primary text-white scale-110 shadow-lg ring-4 ring-tertiary/10" type="button">A</button>
+<button class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg bg-surface-container-highest text-primary hover:bg-tertiary-fixed transition-all duration-300 active:scale-90" type="button">B</button>
+<button class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg bg-surface-container-highest text-primary hover:bg-tertiary-fixed transition-all duration-300 active:scale-90" type="button">C</button>
+</div>
+</div>
+<div class="space-y-4">
+<label class="text-on-surface-variant text-[11px] font-bold uppercase tracking-widest">重要程度</label>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-tertiary" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="stars" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="material-symbols-outlined text-outline-variant/50" data-icon="stars">stars</span>
+<span class="material-symbols-outlined text-outline-variant/50" data-icon="stars">stars</span>
+</div>
+</div>
+</div>
+<!-- Strategic Association (Conditional) -->
+<div class="space-y-4 pt-6 daily-task-fields">
+<div class="flex items-center justify-between">
+<div class="space-y-1">
+<label class="text-on-surface-variant text-[11px] font-bold uppercase tracking-widest">战略关联</label>
+<p class="text-xs text-on-surface-variant/70">关联至长期架构目标。</p>
+</div>
+<button class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-xs font-bold hover:opacity-80 transition-opacity" type="button">关联长期任务</button>
+</div>
+<div class="flex items-center gap-3 p-4 bg-surface-container-highest/50 rounded-xl border border-outline-variant/20">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]" data-icon="architecture">architecture</span>
+</div>
+<div>
+<h4 class="text-sm font-bold text-primary">构建个人操作系统</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">季度愿景</p>
+</div>
+<button class="ml-auto text-on-surface-variant hover:text-error transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="flex items-center justify-end gap-6 pt-8">
+<button class="text-on-surface-variant font-medium text-sm hover:text-primary transition-colors active:scale-95 duration-200" type="button">
+                        舍弃草稿
+                    </button>
+<button class="bg-gradient-to-r from-primary to-primary-container text-white px-10 py-4 rounded-full font-bold shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all duration-300" type="submit">
+                        保存意图
+                    </button>
+</div>
+</form>
+</div>
+<!-- Decorative Quote -->
+<div class="mt-20 text-center">
+<span class="material-symbols-outlined text-tertiary/20 text-4xl" data-icon="format_quote">format_quote</span>
+<p class="italic text-on-surface-variant font-light text-lg mt-4 leading-relaxed">“成功人士与极其成功人士的区别在于，后者几乎对所有事情都说‘不’。”</p>
+<p class="text-[11px] font-bold uppercase tracking-[0.2em] mt-4 text-on-surface-variant/50">— 专注的策展人</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#f5f3f4] dark:bg-[#1e293b] rounded-t-[1.5rem] shadow-[0_-4px_24px_rgba(9,20,38,0.06)]">
+<a class="flex flex-col items-center justify-center bg-[#091426] dark:bg-[#fbf8fa] text-[#fbf8fa] dark:text-[#091426] rounded-xl px-5 py-2 scale-105 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest mt-1">任务</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#45474c] dark:text-[#c5c6cd] px-5 py-2 hover:bg-[#e4e2e3] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="stars">stars</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest mt-1">奖励</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#45474c] dark:text-[#c5c6cd] px-5 py-2 hover:bg-[#e4e2e3] rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest mt-1">设置</span>
+</a>
+</nav>
+<script>
+        const dailyRadio = document.getElementById('daily');
+        const longTermRadio = document.getElementById('long_term');
+        const dailyFields = document.querySelector('.daily-task-fields');
+
+        function updateFields() {
+            if (longTermRadio.checked) {
+                dailyFields.style.display = 'none';
+            } else {
+                dailyFields.style.display = 'block';
+            }
+        }
+
+        dailyRadio.addEventListener('change', updateFields);
+        longTermRadio.addEventListener('change', updateFields);
+        
+        // Initial check
+        updateFields();
+    </script>
+</body></html>

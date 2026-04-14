@@ -1,0 +1,293 @@
+<!DOCTYPE html><html class="light" lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>奖励池 | The Disciplined Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#303032",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "tertiary-container": "#c9a900",
+                    "on-tertiary-container": "#4c3f00",
+                    "secondary": "#515f74",
+                    "surface-container-high": "#eae7e9",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8fa",
+                    "surface-tint": "#545f73",
+                    "inverse-primary": "#bcc7de",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "surface-dim": "#dcd9db",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#705d00",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c5c6cd",
+                    "on-secondary-container": "#57657b",
+                    "on-tertiary-fixed-variant": "#544600",
+                    "secondary-fixed": "#d5e3fd",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#fbf8fa",
+                    "primary-fixed": "#d8e3fb",
+                    "surface-variant": "#e4e2e3",
+                    "outline": "#75777d",
+                    "on-primary-container": "#8590a6",
+                    "surface-container-highest": "#e4e2e3",
+                    "on-background": "#1b1b1d",
+                    "primary-container": "#1e293b",
+                    "inverse-on-surface": "#f3f0f2",
+                    "surface-container": "#f0edef",
+                    "tertiary-fixed-dim": "#e9c400",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#fbf8fa",
+                    "on-surface": "#1b1b1d",
+                    "on-surface-variant": "#45474c",
+                    "on-tertiary-fixed": "#221b00",
+                    "tertiary-fixed": "#ffe16d",
+                    "primary-fixed-dim": "#bcc7de",
+                    "surface-container-low": "#f5f3f4",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "on-primary-fixed": "#111c2d",
+                    "secondary-container": "#d5e3fd",
+                    "primary": "#091426",
+                    "error": "#ba1a1a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen selection:bg-tertiary-fixed overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#fbf8fa]/80 backdrop-blur-xl shadow-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#091426]" style="">blur_on</span>
+<h1 class="text-lg font-bold tracking-[-0.02em] text-[#091426] font-['Inter']" style="">The Disciplined Curator</h1>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#091426] hover:opacity-80 transition-opacity cursor-pointer" style="">account_circle</span>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto">
+<!-- View Toggle -->
+<div class="flex justify-center mb-12">
+<div class="bg-surface-container-low p-1 rounded-full flex gap-1">
+<button class="px-6 py-2 rounded-full bg-surface-container-lowest text-primary text-sm font-semibold shadow-sm transition-all active:scale-95" style="">
+                    列表模式
+                </button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant text-sm font-medium hover:bg-surface-variant transition-all active:scale-95" style="">
+                    星辰模式
+                </button>
+</div>
+</div>
+<!-- Section Header -->
+<div class="mb-8 flex justify-between items-end">
+<div>
+<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-tertiary mb-1" style="">激励引擎</p>
+<h2 class="text-3xl font-extrabold tracking-tight text-primary" style="">奖励池</h2>
+</div>
+</div>
+<!-- List View Content -->
+<div class="space-y-12">
+<!-- Rank S -->
+<section>
+<div class="flex items-center gap-4 mb-6">
+<span class="text-xs font-black px-2 py-1 bg-tertiary text-on-tertiary rounded" style="">等级 S</span>
+<div class="h-[1px] flex-grow bg-surface-variant/30"></div>
+</div>
+<div class="space-y-4">
+<div class="relative overflow-hidden bg-primary p-6 rounded-[1.5rem] shadow-none group active:scale-[0.98] transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary"></div>
+<div class="flex justify-between items-start relative z-10">
+<div>
+<h3 class="text-xl font-bold text-white tracking-tight mb-1" style="">周末度假</h3>
+<p class="text-on-primary-container text-sm" style="">海边木屋三天两夜深度放松</p>
+</div>
+</div>
+<div class="mt-8 flex items-center justify-between relative z-10">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-primary bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2OcNbefNzAwvK_7_EmwKVkiE-l9634z_YwxAo2ZPvoT_1pA2FdGjqTVxOFMSl-yCzbeFKcj3-sERJSPY_0kKFqJHO-iRIbC62ntuaI4au_7uxtx0fsVKtoCqNkbHAChOfIo8GC1cQ8xZFsGRSHT6wicaKGJQhwyd5jQNtm_aMDsNJXqlh5SfB73Cd6_qDmGZwAHVHpe8nWxGrQLdyrXQiDaldC71IjBBmP6p6uQS7ZVuVQmfqfrc2b76BgnFzzOIvwDS7m0k3O6o" style="">
+</div>
+</div>
+<button class="bg-white text-primary px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-opacity" style="">
+                                领取奖励
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Rank A -->
+<section>
+<div class="flex items-center gap-4 mb-6">
+<span class="text-xs font-black px-2 py-1 bg-primary text-on-primary rounded" style="">等级 A</span>
+<div class="h-[1px] flex-grow bg-surface-variant/30"></div>
+</div>
+<div class="space-y-4">
+<!-- Swiped Item (Demonstrating "Swipe Left") -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-high group">
+<!-- Action Buttons (Behind content) -->
+<div class="absolute inset-0 flex justify-end">
+<button class="w-20 h-full bg-primary-container text-white flex flex-col items-center justify-center gap-1 transition-opacity" style="">
+<span class="material-symbols-outlined text-xl" style="">edit</span>
+<span class="text-[10px] font-bold" style="">编辑</span>
+</button>
+<button class="w-20 h-full bg-error text-white flex flex-col items-center justify-center gap-1 transition-opacity" onclick="document.getElementById('delete-confirm-modal').classList.remove('hidden')" style="">
+<span class="material-symbols-outlined text-xl" style="">delete</span>
+<span class="text-[10px] font-bold" style="">删除</span>
+</button>
+</div>
+<!-- Content (Swiped state - shifted left) -->
+<div class="relative bg-background transform -translate-x-[160px] flex items-center p-4 transition-transform duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center mr-4 shrink-0">
+<span class="material-symbols-outlined text-primary" style="">restaurant</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-on-surface" style="">高级餐厅体验</h4>
+<p class="text-xs text-on-surface-variant" style="">双人品鉴套餐</p>
+</div>
+</div>
+</div>
+<!-- Normal Item -->
+<div class="flex items-center p-4 rounded-xl hover:bg-surface-container-high transition-all group cursor-pointer">
+<div class="w-12 h-12 rounded-xl bg-surface-container-low flex items-center justify-center mr-4">
+<span class="material-symbols-outlined text-primary" style="">auto_stories</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-bold text-on-surface" style="">精品书籍收藏</h4>
+<p class="text-xs text-on-surface-variant" style="">季度h建筑文摘订阅</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Rank B -->
+<section class="pb-8">
+<div class="flex items-center gap-4 mb-6">
+<span class="text-xs font-black px-2 py-1 bg-surface-variant text-on-surface-variant rounded" style="">等级 B</span>
+<div class="h-[1px] flex-grow bg-surface-variant/30"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-outline-variant/20 transition-all">
+<span class="material-symbols-outlined text-primary mb-3" style="">coffee</span>
+<h4 class="font-bold text-sm mb-1 text-on-surface" style="">精品咖啡豆</h4>
+<p class="text-xs text-on-surface-variant mb-4" style="">埃塞俄比亚耶加雪菲</p>
+<div class="flex justify-between items-center">
+<span class="material-symbols-outlined text-sm text-on-surface-variant opacity-50" style="">chevron_right</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-5 rounded-2xl border border-transparent hover:border-outline-variant/20 transition-all">
+<span class="material-symbols-outlined text-primary mb-3" style="">movie</span>
+<h4 class="font-bold text-sm mb-1 text-on-surface" style="">电影之夜</h4>
+<p class="text-xs text-on-surface-variant mb-4" style="">院线大片尊享座</p>
+<div class="flex justify-between items-center">
+<span class="material-symbols-outlined text-sm text-on-surface-variant opacity-50" style="">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FAB (Click triggers modal visibility for demo) -->
+<button class="fixed bottom-28 right-6 w-14 h-14 bg-gradient-to-br from-primary to-primary-container text-white rounded-full flex items-center justify-center shadow-[0_24px_40px_rgba(9,20,38,0.12)] active:scale-95 transition-all z-40" onclick="document.getElementById('add-reward-modal').classList.remove('hidden')" style="">
+<span class="material-symbols-outlined" style="">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#f5f3f4] rounded-t-[1.5rem] shadow-[0_-4px_24px_rgba(9,20,38,0.06)]">
+<a class="flex flex-col items-center justify-center text-[#45474c] px-5 py-2 hover:bg-[#e4e2e3] rounded-xl transition-all" href="#" style="">
+<span class="material-symbols-outlined mb-1" style="">checklist</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest" style="">任务</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#091426] text-[#fbf8fa] rounded-xl px-5 py-2 scale-105 transition-all" href="#" style="">
+<span class="material-symbols-outlined mb-1" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">stars</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest" style="">奖励</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#45474c] px-5 py-2 hover:bg-[#e4e2e3] rounded-xl transition-all" href="#" style="">
+<span class="material-symbols-outlined mb-1" style="">settings</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-widest" style="">设置</span>
+</a>
+</nav>
+<!-- Add Reward Modal -->
+<div class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-primary/40 backdrop-blur-sm transition-opacity duration-300" id="add-reward-modal">
+<div class="bg-background w-full max-w-sm rounded-[2rem] p-8 shadow-2xl overflow-hidden relative">
+<button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary" onclick="document.getElementById('add-reward-modal').classList.add('hidden')" style="">
+<span class="material-symbols-outlined" style="">close</span>
+</button>
+<h3 class="text-2xl font-extrabold text-primary mb-8 tracking-tight" style="">添加新奖励</h3>
+<form class="space-y-6" onsubmit="event.preventDefault(); document.getElementById('add-reward-modal').classList.add('hidden')">
+<div>
+<label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2" style="">奖励等级</label>
+<div class="grid grid-cols-4 gap-2">
+<label class="cursor-pointer" style="">
+<input checked="" class="peer sr-only" name="level" type="radio" value="S">
+<div class="h-12 flex items-center justify-center rounded-xl bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-fixed text-sm font-black transition-all" style="">S</div>
+</label>
+<label class="cursor-pointer" style="">
+<input class="peer sr-only" name="level" type="radio" value="A">
+<div class="h-12 flex items-center justify-center rounded-xl bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-fixed text-sm font-black transition-all" style="">A</div>
+</label>
+<label class="cursor-pointer" style="">
+<input class="peer sr-only" name="level" type="radio" value="B">
+<div class="h-12 flex items-center justify-center rounded-xl bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-fixed text-sm font-black transition-all" style="">B</div>
+</label>
+<label class="cursor-pointer" style="">
+<input class="peer sr-only" name="level" type="radio" value="C">
+<div class="h-12 flex items-center justify-center rounded-xl bg-surface-container-low border-2 border-transparent peer-checked:border-primary peer-checked:bg-primary-fixed text-sm font-black transition-all" style="">C</div>
+</label>
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2" style="">具体奖励</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-shadow placeholder:text-on-surface-variant/40" placeholder="输入奖励名称或详情..." type="text">
+</div>
+<div class="pt-4">
+<button class="w-full bg-primary text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all" type="submit" style="">
+                        保存奖励
+                    </button>
+</div>
+</form>
+</div>
+</div><!-- Delete Confirmation Modal -->
+<div class="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-primary/40 backdrop-blur-sm transition-opacity duration-300 hidden" id="delete-confirm-modal">
+<div class="bg-white w-full max-w-xs rounded-[1.5rem] p-6 shadow-2xl text-center">
+<div class="w-12 h-12 bg-error/10 text-error rounded-full flex items-center justify-center mx-auto mb-4">
+<span class="material-symbols-outlined" style="">delete</span>
+</div>
+<h3 class="text-lg font-bold text-primary mb-2" style="">确定要删除这个奖励吗？</h3>
+<p class="text-sm text-on-surface-variant mb-6" style="">删除后将无法找回该奖励项。</p>
+<div class="flex gap-3">
+<button class="flex-1 px-4 py-2.5 rounded-xl border border-outline-variant text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors" onclick="document.getElementById('delete-confirm-modal').classList.add('hidden')" style="">
+        取消
+      </button>
+<button class="flex-1 px-4 py-2.5 rounded-xl bg-error text-white text-sm font-semibold hover:bg-error/90 transition-colors shadow-sm" onclick="document.getElementById('delete-confirm-modal').classList.remove('hidden')" style="">
+        确定删除
+      </button>
+</div>
+</div>
+</div>
+</body></html>
