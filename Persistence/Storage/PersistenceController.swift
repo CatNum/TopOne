@@ -5,6 +5,7 @@ enum PersistenceController {
     static let previewContainer: ModelContainer = {
         let schema = Schema([
             Goal.self,
+            DailyTask.self,
         ])
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
         do {

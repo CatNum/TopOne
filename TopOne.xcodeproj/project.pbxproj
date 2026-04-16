@@ -20,6 +20,8 @@
 		A4FFBC13EF9077795B00A00E /* TopOneiOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC8C490AFF27BD05070F593 /* TopOneiOSApp.swift */; };
 		BA333BC634001E32C4AB66AE /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D00DCEC4B6B7CEF6BF4CB4D /* PersistenceController.swift */; };
 		D78C367D0B58E391882B8BC9 /* TopOnemacOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEEB5C03C262FD9244D860D /* TopOnemacOSApp.swift */; };
+		D9325099449FCE3992923E55 /* DailyTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D07C10CA9F92237B52837B1 /* DailyTask.swift */; };
+		DA2904DAE4ECD8C611B74CEA /* DailyTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D07C10CA9F92237B52837B1 /* DailyTask.swift */; };
 		F5FF41DD14891DCD54C88ADE /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CE4859E0D1200F3A6AAE3C8 /* Goal.swift */; };
 /* End PBXBuildFile section */
 
@@ -37,6 +39,7 @@
 		0F95CF23B03FE2B02CA8F208 /* TopOneRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopOneRootView.swift; sourceTree = "<group>"; };
 		1CE4859E0D1200F3A6AAE3C8 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
 		1D00DCEC4B6B7CEF6BF4CB4D /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
+		3D07C10CA9F92237B52837B1 /* DailyTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTask.swift; sourceTree = "<group>"; };
 		3F58708A14A4015804C0A1AB /* TopOneCoreTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TopOneCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48FA7EC9470FA4EA61FAD21D /* TopOnemacOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TopOnemacOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55AF1B9B8CF9269F42DBC6A6 /* DesktopOverlayAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopOverlayAdapter.swift; sourceTree = "<group>"; };
@@ -115,6 +118,7 @@
 		75527179C8AE12F2F531B6E6 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				3D07C10CA9F92237B52837B1 /* DailyTask.swift */,
 				1CE4859E0D1200F3A6AAE3C8 /* Goal.swift */,
 			);
 			path = Models;
@@ -289,6 +293,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DA2904DAE4ECD8C611B74CEA /* DailyTask.swift in Sources */,
 				2DCD598DDCB890E147D0816C /* DesktopOverlayAdapter.swift in Sources */,
 				5E4A6935E4812361B562E8F2 /* Goal.swift in Sources */,
 				9F3725F9673D6B6F5C8860B6 /* GoalService.swift in Sources */,
@@ -311,6 +316,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9325099449FCE3992923E55 /* DailyTask.swift in Sources */,
 				F5FF41DD14891DCD54C88ADE /* Goal.swift in Sources */,
 				387AF00D3539B246A541AD88 /* GoalService.swift in Sources */,
 				63BF22D2FD9DA582B849E412 /* HomeViewModel.swift in Sources */,
