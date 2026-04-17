@@ -55,5 +55,8 @@ tmp/
 temp/
 .tmp/
 
+# Git worktrees
+.worktrees/
+
 # Dependency directories (common)
 node_modules/

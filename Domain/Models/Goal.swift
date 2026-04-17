@@ -14,6 +14,7 @@ final class Goal {
     var lockEndsAt: Date?
     var completedAt: Date?
     var earlySwitchCount: Int
+    var rewardPointsAwarded: Bool
 
     @Relationship(deleteRule: .cascade, inverse: \DailyTask.goal)
     var dailyTasks: [DailyTask]
@@ -36,6 +37,7 @@ final class Goal {
         lockEndsAt: Date? = nil,
         completedAt: Date? = nil,
         earlySwitchCount: Int = 0,
+        rewardPointsAwarded: Bool = false,
         dailyTasks: [DailyTask] = []
     ) {
         self.title = Goal.normalizedTitle(from: title)
@@ -46,6 +48,7 @@ final class Goal {
         self.lockEndsAt = lockEndsAt
         self.completedAt = completedAt
         self.earlySwitchCount = max(0, earlySwitchCount)
+        self.rewardPointsAwarded = rewardPointsAwarded
         self.dailyTasks = dailyTasks
     }
 

@@ -1,9 +1,31 @@
+#if canImport(AppKit)
+import AppKit
+private typealias PlatformImage = NSImage
+#elseif canImport(UIKit)
+import UIKit
+private typealias PlatformImage = UIImage
+#endif
+import PhotosUI
 import SwiftData
 import SwiftUI
 
+private extension Image {
+    init(platformImage: PlatformImage) {
+        #if canImport(AppKit)
+        self.init(nsImage: platformImage)
+        #elseif canImport(UIKit)
+        self.init(uiImage: platformImage)
+        #endif
+    }
+}
+
+@MainActor
 struct TopOneRootView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Goal.createdAt) private var goals: [Goal]
+    @Query(sort: [SortDescriptor(\RewardDefinition.rankRawValue), SortDescriptor(\RewardDefinition.name)]) private var rewardDefinitions: [RewardDefinition]
+    @Query(sort: \RewardInventoryItem.currentCount, order: .reverse) private var rewardInventoryItems: [RewardInventoryItem]
+    @Query(sort: \RewardAccount.points) private var rewardAccounts: [RewardAccount]
     @StateObject private var viewModel = HomeViewModel()
     @State private var expandedPausedGoalIDs: Set<PersistentIdentifier> = []
     @State private var swipedDailyTaskID: PersistentIdentifier?
@@ -16,6 +38,17 @@ struct TopOneRootView: View {
     @State private var showsForceSwitchHint = false
     @State private var celebration: CompletionCelebration?
     @State private var selectedRootPage: RootPage = .tasks
+    @State private var selectedInventoryItem: RewardInventoryItem?
+    @State private var confirmingRewardUsageItem: RewardInventoryItem?
+    @State private var showsRewardInventory = false
+    @State private var showsRewardManagement = false
+    @State private var showsRewardPointHistory = false
+    @State private var showsRewardPointRules = false
+    @State private var rewardPointHistoryPageSize = 20
+    @State private var rewardDrawResult: RewardDefinition?
+    @State private var selectedRewardImageItem: PhotosPickerItem?
+    @State private var isRewardCarouselAnimating = false
+    @State private var rewardCarouselBoost = false
 
     private let service = GoalService()
 
@@ -33,6 +66,50 @@ struct TopOneRootView: View {
 
     private var completedGoals: [Goal] {
         goals.filter { $0.completedAt != nil }
+    }
+
+    private var rewardPoints: Int {
+        rewardAccounts.reduce(0) { $0 + $1.points }
+    }
+
+    private var rewardDefinitionsByRank: [(TaskRank, [RewardDefinition])] {
+        TaskRank.allCases.map { rank in
+            (rank, rewardDefinitions.filter { $0.rank == rank })
+        }
+        .filter { !$0.1.isEmpty }
+    }
+
+    private var currentRewardRank: TaskRank {
+        viewModel.selectedRewardRank
+    }
+
+    private var currentRankRewards: [RewardDefinition] {
+        rewardDefinitions.filter { $0.rank == currentRewardRank }
+    }
+
+    private var currentRankAvailableRewards: [RewardDefinition] {
+        currentRankRewards.filter { $0.availabilityMode == .unlimited || $0.remainingCount > 0 }
+    }
+
+    private var availableRewardCount: Int {
+        rewardDefinitions.reduce(into: 0) { total, reward in
+            if reward.availabilityMode == .unlimited {
+                total += 1
+            } else {
+                total += reward.remainingCount
+            }
+        }
+    }
+
+    private var inventoryItemsByRank: [(TaskRank, [RewardInventoryItem])] {
+        TaskRank.allCases.map { rank in
+            (rank, rewardInventoryItems.filter { $0.rewardDefinition.rank == rank })
+        }
+        .filter { !$0.1.isEmpty }
+    }
+
+    private var inventoryRewardCount: Int {
+        rewardInventoryItems.reduce(0) { $0 + $1.currentCount }
     }
 
     private var editGoalSheet: Binding<HomeViewModel.GoalDraft?> {
@@ -62,7 +139,7 @@ struct TopOneRootView: View {
             get: {
                 guard let action = viewModel.pendingAction else { return nil }
                 switch action {
-                case .deleteGoal, .deleteTask:
+                case .deleteGoal, .deleteTask, .deleteReward:
                     return action
                 default:
                     return nil
@@ -74,6 +151,9 @@ struct TopOneRootView: View {
                     viewModel.pendingAction = nil
                 } else if newValue == nil,
                           case .deleteTask = viewModel.pendingAction {
+                    viewModel.pendingAction = nil
+                } else if newValue == nil,
+                          case .deleteReward = viewModel.pendingAction {
                     viewModel.pendingAction = nil
                 }
             }
@@ -87,11 +167,7 @@ struct TopOneRootView: View {
                 case .tasks:
                     tasksPage
                 case .rewards:
-                    placeholderPage(
-                        eyebrow: "REWARD SPACE",
-                        title: "奖励页稍后开启",
-                        message: "底部切换已经接通。接下来我们可以在这里实现奖励池与兑换流程。"
-                    )
+                    rewardsPage
                 case .settings:
                     placeholderPage(
                         eyebrow: "SETTINGS SPACE",
@@ -128,8 +204,38 @@ struct TopOneRootView: View {
             .sheet(item: $celebration) { value in
                 completionCelebrationSheet(value)
             }
-            .sheet(item: deleteModalAction) { action in
+            .sheet(isPresented: $showsRewardInventory) {
+                rewardInventorySheet
+            }
+            .sheet(isPresented: $showsRewardManagement) {
+                rewardManagementSheet
+            }
+            .sheet(isPresented: $showsRewardPointHistory) {
+                rewardPointHistorySheet
+            }
+            .sheet(item: $rewardDrawResult) { (reward: RewardDefinition) in
+                rewardDrawResultSheet(reward)
+            }
+            .sheet(item: deleteModalAction) { (action: HomeViewModel.PendingAction) in
                 deleteConfirmationSheet(action)
+            }
+            .alert("确认使用奖励", isPresented: Binding(
+                get: { confirmingRewardUsageItem != nil },
+                set: { if !$0 { confirmingRewardUsageItem = nil } }
+            ), presenting: confirmingRewardUsageItem) { item in
+                Button("取消", role: .cancel) {
+                    confirmingRewardUsageItem = nil
+                }
+                Button("确认使用") {
+                    viewModel.useReward(item, in: modelContext)
+                    if viewModel.errorMessage == nil {
+                        selectedInventoryItem = nil
+                    }
+                    confirmingRewardUsageItem = nil
+                }
+            } message: { item in
+                let rewardName = item.rewardDefinition.name.isEmpty ? "未命名奖励" : item.rewardDefinition.name
+                Text("将使用 \(viewModel.rewardUseAmountText) 份“\(rewardName)”。")
             }
         }
     }
@@ -158,9 +264,11 @@ struct TopOneRootView: View {
                     .frame(maxWidth: .infinity)
                 }
 
-                floatingAddButton
-                    .padding(.trailing, max(12, min(proxy.size.width * 0.038, 20)))
-                    .padding(.bottom, max(12, min(proxy.size.width * 0.038, 20)))
+                if selectedRootPage == .tasks {
+                    floatingAddButton
+                        .padding(.trailing, max(12, min(proxy.size.width * 0.038, 20)))
+                        .padding(.bottom, max(12, min(proxy.size.width * 0.038, 20)))
+                }
             }
         }
     }
@@ -498,6 +606,93 @@ struct TopOneRootView: View {
         }
     }
 
+    private var rewardsPage: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 24) {
+                topBar
+                rewardsHeader
+                rewardPoolSection
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 18)
+            .padding(.bottom, 172)
+            .frame(maxWidth: 680, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+        .scrollClipDisabled()
+    }
+
+    private var rewardsHeader: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("奖励")
+                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .tracking(-0.8)
+                    .foregroundStyle(PrototypeColors.primary)
+                Text("让每一次完成都立刻转化成期待感：积分累积、即时抽卡、正反馈不断回流。")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            HStack(spacing: 12) {
+                Button {
+                    showsRewardInventory = true
+                } label: {
+                    Label("我的奖励", systemImage: "shippingbox.fill")
+                        .font(.subheadline.weight(.bold))
+                        .lineLimit(1)
+                        .foregroundStyle(PrototypeColors.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(PrototypeColors.surfaceContainerHigh, in: Capsule())
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showsRewardManagement = true
+                } label: {
+                    Label("奖励管理", systemImage: "slider.horizontal.3")
+                        .font(.subheadline.weight(.bold))
+                        .lineLimit(1)
+                        .foregroundStyle(PrototypeColors.onTertiaryFixed)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+
+    @ViewBuilder
+    private var rewardPoolSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            rewardPointsCard
+
+            rankSelectionCard(
+                title: "选择抽卡等级",
+                rank: Binding(
+                    get: { viewModel.selectedRewardRank },
+                    set: { viewModel.selectedRewardRank = $0 }
+                ),
+                note: "等级选择固定在页面上方；下方奖池会按当前等级滚动预览。"
+            )
+
+            if currentRankRewards.isEmpty {
+                rewardEmptyStateCard(
+                    title: "当前等级池还没有奖励",
+                    message: "先去奖励管理添加 Rank \(currentRewardRank.rawValue) 的奖励，再回来抽卡。"
+                )
+            } else {
+                rewardCarouselCard
+                rewardPrimaryDrawButton
+            }
+        }
+    }
+
+
     private func placeholderPage(eyebrow: String, title: String, message: String) -> some View {
         VStack(alignment: .leading, spacing: 22) {
             topBar
@@ -683,6 +878,745 @@ struct TopOneRootView: View {
                 }
             }
         }
+    }
+
+    private var rewardPrimaryDrawButton: some View {
+        Button {
+            triggerRewardDraw()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "sparkles")
+                    .font(.headline.weight(.bold))
+                Text(rewardDrawButtonLabel(for: currentRewardRank))
+                    .font(.headline.weight(.bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.9)
+            }
+            .foregroundStyle(PrototypeColors.onTertiaryFixed)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 2)
+        .disabled(currentRankAvailableRewards.isEmpty || rewardPoints < RewardService().drawCost(for: currentRewardRank) || isRewardCarouselAnimating)
+    }
+
+    private var rewardPointsCard: some View {
+        Button {
+            showsRewardPointHistory = true
+        } label: {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("当前积分")
+                        .font(.caption.weight(.bold))
+                        .tracking(1.1)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                    Text("\(rewardPoints)")
+                        .font(.system(size: 32, weight: .heavy, design: .rounded))
+                        .foregroundStyle(PrototypeColors.primary)
+                        .monospacedDigit()
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 6) {
+                    Text("积分明细")
+                        .font(.footnote.weight(.bold))
+                        .foregroundStyle(PrototypeColors.primary)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(PrototypeColors.outlineVariant)
+                }
+            }
+            .padding(20)
+            .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 28).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var rewardCarouselCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack {
+                Text("当前奖池预览")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                Spacer()
+                Text("Rank \(currentRewardRank.rawValue)")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(PrototypeColors.tertiaryFixed)
+            }
+
+            rewardIconCarouselRow(offsetSeed: 0)
+            rewardIconCarouselRow(offsetSeed: 1)
+
+            if currentRankAvailableRewards.isEmpty {
+                Text("当前奖池暂时不可抽，可能是限量奖励已抽空。")
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(PrototypeColors.tertiaryFixed)
+            }
+        }
+        .padding(22)
+        .background(
+            LinearGradient(
+                colors: [PrototypeColors.primary, PrototypeColors.primaryContainer.opacity(0.96)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 32, style: .continuous)
+        )
+        .overlay(RoundedRectangle(cornerRadius: 32).stroke(.white.opacity(0.06)))
+    }
+
+    private func rewardIconCarouselRow(offsetSeed: Int) -> some View {
+        GeometryReader { proxy in
+            TimelineView(.animation) { context in
+                let items = carouselRewards(offsetSeed: offsetSeed)
+                let base = context.date.timeIntervalSinceReferenceDate
+                let speed = rewardCarouselBoost ? 110.0 : 34.0
+                let iconSize: CGFloat = 68
+                let spacing: CGFloat = 12
+                let unitWidth = CGFloat(items.count) * iconSize + CGFloat(max(items.count - 1, 0)) * spacing
+                let minimumLoopWidth = max(unitWidth, proxy.size.width + iconSize)
+                let repeatCount = max(2, Int(ceil(minimumLoopWidth / max(unitWidth, 1))) + 1)
+                let loopItems = Array((0..<repeatCount).flatMap { _ in items })
+                let offset = CGFloat((base * speed).truncatingRemainder(dividingBy: max(unitWidth, 1)))
+
+                HStack(spacing: spacing) {
+                    ForEach(Array(loopItems.enumerated()), id: \.offset) { _, reward in
+                        rewardCarouselIcon(reward)
+                    }
+                }
+                .offset(x: -offset)
+            }
+            .frame(width: proxy.size.width, height: 68, alignment: .leading)
+            .clipped()
+        }
+        .frame(height: 68)
+    }
+
+    private func rewardCarouselIcon(_ reward: RewardDefinition) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(.white.opacity(0.10))
+                .frame(width: 68, height: 68)
+
+            rewardImageView(for: reward, size: 44)
+        }
+    }
+
+    private var rewardInventorySheet: some View {
+        NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        creationHeader(
+                            eyebrow: "我的奖励",
+                            title: "奖励库存",
+                            subtitle: "这里展示你已经抽到的全部奖励，同名奖励会合并展示数量。"
+                        )
+
+                        rewardInventorySections
+                    }
+                    .padding(24)
+                    .padding(.bottom, 12)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { showsRewardInventory = false }
+                }
+            }
+            .sheet(item: $selectedInventoryItem) { (item: RewardInventoryItem) in
+                rewardInventoryDetailSheet(item)
+            }
+        }
+    }
+
+    private var rewardManagementSheet: some View {
+        NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        creationHeader(
+                            eyebrow: "奖励管理",
+                            title: "奖励定义",
+                            subtitle: "这里专门维护奖励的增删改查，不包含库存维护。"
+                        )
+
+                        Button {
+                            viewModel.showCreateRewardDefinition()
+                        } label: {
+                            Label("新增奖励", systemImage: "plus")
+                                .font(.headline.weight(.bold))
+                                .foregroundStyle(PrototypeColors.onTertiaryFixed)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+
+                        if rewardDefinitionsByRank.isEmpty {
+                            rewardEmptyStateCard(
+                                title: "还没有奖励定义",
+                                message: "先新增奖励，再配置等级、图标和供应方式。"
+                            )
+                        } else {
+                            VStack(spacing: 18) {
+                                ForEach(rewardDefinitionsByRank, id: \.0.id) { rank, rewards in
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        Text("Rank \(rank.rawValue)")
+                                            .font(.headline.weight(.bold))
+                                            .foregroundStyle(PrototypeColors.primary)
+
+                                        VStack(spacing: 12) {
+                                            ForEach(rewards) { reward in
+                                                rewardDefinitionCard(reward)
+                                            }
+                                        }
+                                    }
+                                    .padding(20)
+                                    .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: 28).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+                                }
+                            }
+                        }
+                    }
+                    .padding(24)
+                    .padding(.bottom, 12)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { showsRewardManagement = false }
+                }
+            }
+            .sheet(item: $viewModel.rewardDraft) { draft in
+                rewardForm(draft: draft)
+            }
+        }
+    }
+
+    private var rewardInventorySections: some View {
+        Group {
+            if inventoryItemsByRank.isEmpty {
+                rewardEmptyStateCard(
+                    title: "还没有抽到奖励",
+                    message: "先回到抽卡页抽取，再来这里查看与使用。"
+                )
+            } else {
+                VStack(spacing: 18) {
+                    ForEach(inventoryItemsByRank, id: \.0.id) { rank, items in
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Rank \(rank.rawValue)")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(PrototypeColors.primary)
+                                Spacer()
+                            }
+
+                            VStack(spacing: 12) {
+                                ForEach(items) { item in
+                                    rewardInventoryCard(item)
+                                }
+                            }
+                        }
+                        .padding(20)
+                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 28).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+                    }
+                }
+            }
+        }
+    }
+
+    private var rewardPointHistorySheet: some View {
+        let transactions = (try? RewardService().fetchPointTransactions(in: modelContext)) ?? []
+        let pagedTransactions = Array(transactions.prefix(rewardPointHistoryPageSize))
+
+        return NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("积分明细")
+                                .font(.caption.weight(.bold))
+                                .tracking(1.8)
+                                .foregroundStyle(PrototypeColors.tertiary)
+
+                            HStack(alignment: .bottom, spacing: 8) {
+                                Text("奖励积分记录")
+                                    .font(.system(size: 31, weight: .heavy, design: .rounded))
+                                    .tracking(-0.8)
+                                    .foregroundStyle(PrototypeColors.primary)
+
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        showsRewardPointRules.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .font(.headline)
+                                        .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.42))
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.bottom, 4)
+                                .accessibilityLabel("查看积分规则")
+                            }
+
+                            Text("查看每次积分变化，也可随时展开规则对照当前奖励机制。")
+                                .font(.subheadline)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        if showsRewardPointRules {
+                            inlineHintCard(
+                                title: "积分规则说明",
+                                message: "奖励积分只在任务完成时发生变化；抽卡会按当前等级池消耗对应积分。",
+                                highlights: [
+                                    "完成日常任务：S 12 / A 8 / B 5 / C 3",
+                                    "完成长期任务：S 20 / A 10 / B 6 / C 4",
+                                    "抽卡消耗：S 12 / A 5 / B 3 / C 2"
+                                ]
+                            )
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack(alignment: .center, spacing: 12) {
+                                Text("变更记录")
+                                    .font(.caption.weight(.bold))
+                                    .tracking(1.1)
+                                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+                                Spacer()
+
+                                Menu {
+                                    ForEach([10, 20, 30, 50], id: \.self) { pageSize in
+                                        Button {
+                                            rewardPointHistoryPageSize = pageSize
+                                        } label: {
+                                            if rewardPointHistoryPageSize == pageSize {
+                                                Label("每页 \(pageSize) 条", systemImage: "checkmark")
+                                            } else {
+                                                Text("每页 \(pageSize) 条")
+                                            }
+                                        }
+                                    }
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Text("每页 \(rewardPointHistoryPageSize) 条")
+                                            .font(.caption.weight(.semibold))
+                                        Image(systemName: "chevron.up.chevron.down")
+                                            .font(.caption2.weight(.bold))
+                                    }
+                                    .foregroundStyle(PrototypeColors.primary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(PrototypeColors.surfaceContainerHigh, in: Capsule())
+                                }
+                                .menuStyle(.button)
+                            }
+
+                            if transactions.isEmpty {
+                                rewardEmptyStateCard(
+                                    title: "还没有积分记录",
+                                    message: "完成任务或抽卡之后，这里会开始累积你的积分变化轨迹。"
+                                )
+                            } else {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("当前展示 \(pagedTransactions.count) / \(transactions.count) 条")
+                                        .font(.footnote.weight(.medium))
+                                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+                                    VStack(spacing: 12) {
+                                        ForEach(pagedTransactions) { transaction in
+                                            rewardPointTransactionCard(transaction)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(24)
+                    .padding(.bottom, 12)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { showsRewardPointHistory = false }
+                }
+            }
+        }
+    }
+
+    private func rewardDrawResultSheet(_ reward: RewardDefinition) -> some View {
+        NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+
+                VStack(alignment: .leading, spacing: 18) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("抽取结果")
+                                .font(.caption.weight(.bold))
+                                .tracking(2.2)
+                                .foregroundStyle(PrototypeColors.tertiary)
+                            Text(reward.name.isEmpty ? "未命名奖励" : reward.name)
+                                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                                .foregroundStyle(PrototypeColors.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text("已加入我的奖励")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                        }
+                        Spacer()
+                        Text("Rank \(reward.rank.rawValue)")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(PrototypeColors.primary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(PrototypeColors.surfaceContainerHigh, in: Capsule())
+                    }
+
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(PrototypeColors.tertiaryFixedDim)
+                                .frame(width: 82, height: 82)
+                            rewardImageView(for: reward, size: 40)
+                        }
+
+                        if !reward.detail.isEmpty {
+                            Text(reward.detail)
+                                .font(.subheadline)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else {
+                            Text("稍后可前往库存页手动使用。")
+                                .font(.subheadline)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+                    .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+
+                    Button("继续抽卡") {
+                        rewardDrawResult = nil
+                    }
+                    .buttonStyle(.plain)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(PrototypeColors.onTertiaryFixed)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                    .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+                }
+                .padding(22)
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { rewardDrawResult = nil }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func triggerRewardDraw() {
+        guard !isRewardCarouselAnimating else { return }
+        isRewardCarouselAnimating = true
+        rewardCarouselBoost = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            let result = viewModel.drawReward(in: modelContext)
+            rewardCarouselBoost = false
+            isRewardCarouselAnimating = false
+            if let result {
+                rewardDrawResult = result
+            }
+        }
+    }
+
+    private func carouselRewards(offsetSeed: Int) -> [RewardDefinition] {
+        let source = currentRankRewards.isEmpty ? currentRankAvailableRewards : currentRankRewards
+        let rewards = source.isEmpty ? rewardDefinitions : source
+        guard !rewards.isEmpty else { return [] }
+
+        let start = offsetSeed % rewards.count
+        let rotated = Array(rewards[start...]) + Array(rewards[..<start])
+        return Array((0..<4).flatMap { _ in rotated })
+    }
+
+    private func rewardDefinitionCard(_ reward: RewardDefinition) -> some View {
+        let isAvailable = reward.availabilityMode == .unlimited || reward.remainingCount > 0
+
+        return VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(PrototypeColors.tertiaryFixed.opacity(0.88))
+                        .frame(width: 42, height: 42)
+                    rewardImageView(for: reward, size: 24)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(reward.name.isEmpty ? "未命名奖励" : reward.name)
+                        .font(.headline)
+                        .foregroundStyle(PrototypeColors.primary)
+                    if !reward.detail.isEmpty {
+                        Text(reward.detail)
+                            .font(.subheadline)
+                            .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Text(rewardAvailabilityText(reward))
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.9))
+                }
+
+                Spacer()
+
+                Menu {
+                    Button("编辑", systemImage: "pencil") {
+                        viewModel.showEditRewardDefinition(reward)
+                    }
+                    Button("删除", systemImage: "trash", role: .destructive) {
+                        viewModel.pendingAction = .deleteReward(reward)
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.title3)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.72))
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text(isAvailable ? "奖励预览 · 可能从当前等级池随机抽到" : "奖励预览 · 当前已不可抽")
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(isAvailable ? PrototypeColors.onSurfaceVariant : PrototypeColors.error)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .opacity(isAvailable ? 1 : 0.56)
+        .background(PrototypeColors.surfaceContainerLowest, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
+    }
+
+    private func rewardInventoryCard(_ item: RewardInventoryItem) -> some View {
+        let isDisabled = item.currentCount == 0
+
+        return Button {
+            viewModel.prepareRewardUsage()
+            selectedInventoryItem = item
+        } label: {
+            HStack(alignment: .center, spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(PrototypeColors.primaryFixed)
+                        .frame(width: 42, height: 42)
+                    rewardImageView(for: item.rewardDefinition, size: 24)
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(item.rewardDefinition.name.isEmpty ? "未命名奖励" : item.rewardDefinition.name)
+                        .font(.headline)
+                        .foregroundStyle(PrototypeColors.primary)
+                    Text("当前持有 \(item.currentCount) 份 · Rank \(item.rewardDefinition.rank.rawValue)")
+                        .font(.caption)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(PrototypeColors.outlineVariant)
+            }
+            .padding(18)
+            .background(PrototypeColors.surfaceContainerLowest, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 24).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.5 : 1)
+    }
+
+    private func rewardEmptyStateCard(title: String, message: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(PrototypeColors.primary)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PrototypeColors.surfaceContainerLow, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 28).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+    }
+
+    private func rewardAvailabilityText(_ reward: RewardDefinition) -> String {
+        switch reward.availabilityMode {
+        case .unlimited:
+            return "无限供应"
+        case .limited:
+            return "剩余 \(reward.remainingCount) 份"
+        }
+    }
+
+    @ViewBuilder
+    private func rewardDraftImagePreview(imageData: Data) -> some View {
+        if let image = RewardService.decodedImage(from: imageData) {
+            Image(platformImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        } else {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(PrototypeColors.surfaceContainerHigh)
+                .frame(width: 56, height: 56)
+                .overlay {
+                    Image(systemName: "photo")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(PrototypeColors.outlineVariant)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private func rewardImageView(for reward: RewardDefinition, size: CGFloat) -> some View {
+        if let image = RewardService.decodedImage(from: reward.iconImageData) {
+            Image(platformImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size, height: size)
+                .clipShape(RoundedRectangle(cornerRadius: min(size * 0.32, 18), style: .continuous))
+        } else {
+            Image(systemName: reward.icon.isEmpty ? "gift.fill" : reward.icon)
+                .font(.system(size: size * 0.7, weight: .bold))
+                .foregroundStyle(.white)
+        }
+    }
+
+    private func pointRuleRow(rank: TaskRank, taskPoints: Int, goalPoints: Int, drawCost: Int) -> some View {
+        HStack(alignment: .top) {
+            Text("Rank \(rank.rawValue)")
+                .font(.headline.weight(.bold))
+                .foregroundStyle(PrototypeColors.primary)
+                .frame(width: 74, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("完成日常任务 +\(taskPoints) 分")
+                Text("完成长期任务 +\(goalPoints) 分")
+                Text("抽取该等级奖励 -\(drawCost) 分")
+            }
+            .font(.subheadline)
+            .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+            Spacer()
+        }
+        .padding(16)
+        .background(PrototypeColors.surfaceContainerLowest, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
+    }
+
+    private func rewardPointTransactionCard(_ transaction: RewardPointTransaction) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(transaction.pointsDelta >= 0 ? PrototypeColors.primaryFixed : PrototypeColors.errorContainer)
+                    .frame(width: 42, height: 42)
+                Image(systemName: transaction.pointsDelta >= 0 ? "plus" : "minus")
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundStyle(transaction.pointsDelta >= 0 ? PrototypeColors.primary : PrototypeColors.error)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(rewardPointTransactionTitle(transaction))
+                    .font(.headline)
+                    .foregroundStyle(PrototypeColors.primary)
+                Text(rewardPointTransactionSubtitle(transaction))
+                    .font(.subheadline)
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(rewardPointTransactionTimestamp(transaction.createdAt))
+                    .font(.caption)
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.75))
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 6) {
+                Text(transaction.pointsDelta >= 0 ? "+\(transaction.pointsDelta)" : "\(transaction.pointsDelta)")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(transaction.pointsDelta >= 0 ? PrototypeColors.primary : PrototypeColors.error)
+                    .monospacedDigit()
+                Text("余额 \(transaction.balanceAfterChange)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                    .monospacedDigit()
+            }
+        }
+        .padding(18)
+        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+    }
+
+    private func rewardPointTransactionTitle(_ transaction: RewardPointTransaction) -> String {
+        switch transaction.reason {
+        case .completeDailyTask:
+            return "完成日常任务"
+        case .completeGoal:
+            return "完成长期任务"
+        case .drawReward:
+            return "抽取 Rank \(transaction.rank.rawValue) 奖励"
+        }
+    }
+
+    private func rewardPointTransactionSubtitle(_ transaction: RewardPointTransaction) -> String {
+        let title = transaction.referenceTitle.isEmpty ? "未命名条目" : transaction.referenceTitle
+        switch transaction.reason {
+        case .completeDailyTask, .completeGoal:
+            return "\(title) · Rank \(transaction.rank.rawValue)"
+        case .drawReward:
+            return "消耗积分后抽中了“\(title)”"
+        }
+    }
+
+    private func rewardPointTransactionTimestamp(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter.string(from: date)
+    }
+
+    private func rewardDrawButtonLabel(for rank: TaskRank) -> String {
+        let cost: Int
+        switch rank {
+        case .s:
+            cost = 12
+        case .a:
+            cost = 5
+        case .b:
+            cost = 3
+        case .c:
+            cost = 2
+        }
+        return "消耗 \(cost) 积分抽取 Rank \(rank.rawValue) 奖励"
     }
 
     private func taskSwipeActions(_ task: DailyTask, allowsStatusUpdate: Bool) -> some View {
@@ -1205,6 +2139,10 @@ struct TopOneRootView: View {
             title = "确定删除该任务吗？"
             message = "删除后此任务的所有进度和历史记录将无法恢复。"
             confirmTitle = "确认删除"
+        case .deleteReward:
+            title = "确定删除这个奖励吗？"
+            message = "删除后该奖励将从奖励池中移除，已有库存也会一并删除。"
+            confirmTitle = "确认删除"
         default:
             title = ""
             message = ""
@@ -1240,6 +2178,8 @@ struct TopOneRootView: View {
                             viewModel.deleteGoal(goal, in: modelContext)
                         case let .deleteTask(task):
                             viewModel.deleteTask(task, in: modelContext)
+                        case let .deleteReward(reward):
+                            viewModel.deleteRewardDefinition(reward, in: modelContext)
                         default:
                             viewModel.pendingAction = nil
                         }
@@ -1369,6 +2309,283 @@ struct TopOneRootView: View {
         }
     }
 
+    private func rewardInventoryDetailSheet(_ item: RewardInventoryItem) -> some View {
+        NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        creationHeader(
+                            eyebrow: "我的奖励",
+                            title: item.rewardDefinition.name.isEmpty ? "未命名奖励" : item.rewardDefinition.name,
+                            subtitle: "当下拥有 \(item.currentCount) 份。认真使用，也认真享受。"
+                        )
+
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("奖励详情")
+                                .font(.caption.weight(.bold))
+                                .tracking(1.1)
+                                .foregroundStyle(PrototypeColors.tertiaryFixedDim)
+
+                            HStack(spacing: 10) {
+                                rewardImageView(for: item.rewardDefinition, size: 24)
+                                Text("Rank \(item.rewardDefinition.rank.rawValue)")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundStyle(.white)
+                            }
+
+                            if !item.rewardDefinition.detail.isEmpty {
+                                Text(item.rewardDefinition.detail)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white.opacity(0.68))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            LinearGradient(colors: [PrototypeColors.primary, PrototypeColors.primaryContainer], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        )
+
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("使用数量")
+                                .font(.caption.weight(.bold))
+                                .tracking(1.1)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+                            TextField("输入使用数量", text: $viewModel.rewardUseAmountText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                            Text("当前可使用 \(item.currentCount) 份，确认后才会从库存中扣减。")
+                                .font(.footnote)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                        }
+                        .padding(22)
+                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.18)))
+
+                        if let errorMessage = viewModel.errorMessage {
+                            errorBanner(errorMessage)
+                        }
+
+                        creationFooter(
+                            discardLabel: "稍后使用",
+                            confirmLabel: "确认使用",
+                            onDiscard: { selectedInventoryItem = nil },
+                            onConfirm: {
+                                confirmingRewardUsageItem = item
+                            },
+                            isConfirmDisabled: item.currentCount == 0
+                        )
+                    }
+                    .padding(24)
+                    .padding(.bottom, 12)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { selectedInventoryItem = nil }
+                }
+            }
+        }
+    }
+
+    private func rewardForm(draft: HomeViewModel.RewardDraft) -> some View {
+        let rewardImageData = viewModel.rewardDraft?.iconImageData ?? draft.iconImageData
+
+        return NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        creationHeader(
+                            eyebrow: "奖励池",
+                            title: draft.reward == nil ? "添加一个新奖励" : "调整这个奖励",
+                            subtitle: "奖励要足够具体，才能在兑现时真正带来期待感。"
+                        )
+
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("奖励内容")
+                                .font(.caption.weight(.bold))
+                                .tracking(1.1)
+                                .foregroundStyle(PrototypeColors.tertiaryFixedDim)
+                            TextField("例如：咖啡馆放空 30 分钟", text: Binding(
+                                get: { viewModel.rewardDraft?.name ?? draft.name },
+                                set: {
+                                    guard var current = viewModel.rewardDraft else { return }
+                                    current.name = $0
+                                    viewModel.rewardDraft = current
+                                }
+                            ))
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            Text("只写真正让你期待的奖励，不写抽象口号。")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.62))
+                        }
+                        .padding(24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            LinearGradient(colors: [PrototypeColors.primary, PrototypeColors.primaryContainer], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        )
+                        .overlay(alignment: .leading) {
+                            Rectangle()
+                                .fill(PrototypeColors.tertiaryFixedDim)
+                                .frame(width: 4)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .padding(.vertical, 18)
+                        }
+
+                        rankSelectionCard(
+                            title: "奖励等级",
+                            rank: Binding(
+                                get: { viewModel.rewardDraft?.rank ?? draft.rank },
+                                set: {
+                                    guard var current = viewModel.rewardDraft else { return }
+                                    current.rank = $0
+                                    viewModel.rewardDraft = current
+                                }
+                            ),
+                            note: "奖励等级与任务等级共用同一套 S / A / B / C 体系。"
+                        )
+
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("奖励图标与说明")
+                                .font(.caption.weight(.bold))
+                                .tracking(1.1)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+                            PhotosPicker(selection: $selectedRewardImageItem, matching: .images, photoLibrary: .shared()) {
+                                HStack(spacing: 14) {
+                                    if let image = RewardService.decodedImage(from: rewardImageData) {
+                                        Image(platformImage: image)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 56, height: 56)
+                                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                            .fill(PrototypeColors.surfaceContainerHigh)
+                                            .frame(width: 56, height: 56)
+                                            .overlay {
+                                                Image(systemName: "photo")
+                                                    .font(.headline.weight(.bold))
+                                                    .foregroundStyle(PrototypeColors.outlineVariant)
+                                            }
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(rewardImageData.isEmpty ? "选择奖励图片" : "更换奖励图片")
+                                            .font(.headline.weight(.bold))
+                                            .foregroundStyle(PrototypeColors.primary)
+                                        Text("图片为必选项，建议使用清晰、单主体的小图标。")
+                                            .font(.footnote)
+                                            .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                                    }
+
+                                    Spacer()
+                                }
+                                .padding(16)
+                                .background(PrototypeColors.surfaceContainerLowest, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 22).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
+                            }
+                            .buttonStyle(.plain)
+
+                            TextField("补充描述（可选）", text: Binding(
+                                get: { viewModel.rewardDraft?.detail ?? draft.detail },
+                                set: {
+                                    guard var current = viewModel.rewardDraft else { return }
+                                    current.detail = $0
+                                    viewModel.rewardDraft = current
+                                }
+                            ))
+                            .textFieldStyle(.roundedBorder)
+                        }
+                        .padding(22)
+                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.18)))
+
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("供应方式")
+                                .font(.caption.weight(.bold))
+                                .tracking(1.1)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+                            Picker("供应方式", selection: Binding(
+                                get: { viewModel.rewardDraft?.availabilityMode ?? draft.availabilityMode },
+                                set: {
+                                    guard var current = viewModel.rewardDraft else { return }
+                                    current.availabilityMode = $0
+                                    if $0 == .unlimited {
+                                        current.remainingCount = 0
+                                    } else if current.remainingCount <= 0 {
+                                        current.remainingCount = 1
+                                    }
+                                    viewModel.rewardDraft = current
+                                }
+                            )) {
+                                Text("无限供应").tag(RewardAvailabilityMode.unlimited)
+                                Text("限量库存").tag(RewardAvailabilityMode.limited)
+                            }
+                            .pickerStyle(.segmented)
+
+                            if (viewModel.rewardDraft?.availabilityMode ?? draft.availabilityMode) == .limited {
+                                Stepper(value: Binding(
+                                    get: { max(viewModel.rewardDraft?.remainingCount ?? draft.remainingCount, 1) },
+                                    set: {
+                                        guard var current = viewModel.rewardDraft else { return }
+                                        current.remainingCount = max($0, 1)
+                                        viewModel.rewardDraft = current
+                                    }
+                                ), in: 1...99) {
+                                    Text("剩余 \(max(viewModel.rewardDraft?.remainingCount ?? draft.remainingCount, 1)) 份")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(PrototypeColors.primary)
+                                }
+                            }
+                        }
+                        .padding(22)
+                        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.18)))
+
+                        creationFooter(
+                            discardLabel: "舍弃草稿",
+                            confirmLabel: draft.reward == nil ? "保存奖励" : "保存修改",
+                            onDiscard: { viewModel.rewardDraft = nil },
+                            onConfirm: { viewModel.saveRewardDefinition(in: modelContext) },
+                            isConfirmDisabled: rewardImageData.isEmpty
+                        )
+                        .onChange(of: selectedRewardImageItem) { _, newValue in
+                            guard let newValue else { return }
+                            Task {
+                                if let data = try? await newValue.loadTransferable(type: Data.self) {
+                                    let optimizedData = RewardService.optimizedImageData(from: data)
+                                    await MainActor.run {
+                                        guard var current = viewModel.rewardDraft else { return }
+                                        current.iconImageData = optimizedData
+                                        current.icon = ""
+                                        viewModel.rewardDraft = current
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(24)
+                    .padding(.bottom, 12)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { viewModel.rewardDraft = nil }
+                }
+            }
+        }
+    }
+
     private func dailyTaskForm(draft: HomeViewModel.DailyTaskDraft) -> some View {
         NavigationStack {
             ZStack {
@@ -1485,76 +2702,64 @@ struct TopOneRootView: View {
     }
 
     private func lockCommitmentSheet(_ goal: Goal) -> some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .bottom) {
-                Rectangle()
-                    .fill(PrototypeColors.primary.opacity(0.18))
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        viewModel.lockGoal = nil
-                    }
+        ZStack {
+            PrototypeColors.background.ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 28) {
-                        Circle()
-                            .fill(PrototypeColors.surfaceContainerHigh)
-                            .frame(width: 88, height: 88)
-                            .overlay {
-                                Image(systemName: "star.circle.fill")
-                                    .font(.system(size: 34, weight: .bold))
-                                    .foregroundStyle(PrototypeColors.primary)
-                            }
-                            .padding(.top, 12)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 28) {
+                    creationHeader(
+                        eyebrow: "专注确认",
+                        title: "确认选择此长期任务？",
+                        subtitle: "一旦开始，我们建议你保持节奏，每日精进一点。"
+                    )
 
-                        VStack(spacing: 14) {
-                            Text("确认选择此长期任务？")
-                                .font(.system(size: 24, weight: .heavy, design: .rounded))
-                                .foregroundStyle(PrototypeColors.primary)
-                            Text("一旦开始，我们建议您保持节奏，每日精进\n一点。")
-                                .font(.system(size: 18, weight: .medium))
-                                .multilineTextAlignment(.center)
-                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
-                        }
-
-                        VStack(spacing: 14) {
-                            HStack {
-                                Text("选择承诺周期")
-                                    .font(.headline.weight(.semibold))
-                                    .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.78))
-                                Button {
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        showsLockCommitmentHint.toggle()
-                                    }
-                                } label: {
-                                    Image(systemName: "questionmark.circle.fill")
-                                        .font(.headline)
-                                        .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.42))
+                    VStack(spacing: 14) {
+                        HStack {
+                            Text("选择承诺周期")
+                                .font(.headline.weight(.semibold))
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.78))
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showsLockCommitmentHint.toggle()
                                 }
-                                .buttonStyle(.plain)
+                            } label: {
+                                Image(systemName: "questionmark.circle.fill")
+                                    .font(.headline)
+                                    .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.42))
                             }
-
-                            if showsLockCommitmentHint {
-                                inlineHintCard(
-                                    title: "承诺周期说明",
-                                    message: "承诺周期不是限制你，而是帮你把注意力从反复犹豫中解放出来。周期越清晰，日常执行越稳定。",
-                                    highlights: [
-                                        "7 / 14 / 30 天适合不同强度的专注实验。",
-                                        "自定义天数适用于更长期的专注承诺。",
-                                        "中途放弃会进入放弃流程，并提高下次切换门槛。"
-                                    ]
-                                )
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                            }
-
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                                lockOptionButton(.sevenDays)
-                                lockOptionButton(.fourteenDays)
-                                lockOptionButton(.thirtyDays)
-                                lockOptionButton(.custom)
-                            }
+                            .buttonStyle(.plain)
+                            Spacer()
                         }
 
-                        Button {
+                        if showsLockCommitmentHint {
+                            inlineHintCard(
+                                title: "承诺周期说明",
+                                message: "承诺周期不是限制你，而是帮你把注意力从反复犹豫中解放出来。周期越清晰，日常执行越稳定。",
+                                highlights: [
+                                    "7 / 14 / 30 天适合不同强度的专注实验。",
+                                    "自定义天数适用于更长期的专注承诺。",
+                                    "中途放弃会进入放弃流程，并提高下次切换门槛。"
+                                ]
+                            )
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                            lockOptionButton(.sevenDays)
+                            lockOptionButton(.fourteenDays)
+                            lockOptionButton(.thirtyDays)
+                            lockOptionButton(.custom)
+                        }
+                    }
+                    .padding(22)
+                    .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 28).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+
+                    creationFooter(
+                        discardLabel: "稍后再说",
+                        confirmLabel: "确认承诺",
+                        onDiscard: { viewModel.lockGoal = nil },
+                        onConfirm: {
                             switch selectedLockCommitment {
                             case .sevenDays:
                                 viewModel.setTopOne(goal, lockDuration: .sevenDays, in: modelContext)
@@ -1568,42 +2773,15 @@ struct TopOneRootView: View {
                             case .custom:
                                 viewModel.prepareCustomLock(for: goal)
                             }
-                        } label: {
-                            HStack(spacing: 12) {
-                                Text("确认承诺")
-                                Image(systemName: "arrow.right")
-                            }
-                            .font(.headline.weight(.bold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 19)
-                            .background(PrototypeColors.primary, in: Capsule())
-                        }
-                        .buttonStyle(.plain)
-
-                        Button("稍后再说") {
-                            viewModel.lockGoal = nil
-                        }
-                        .buttonStyle(.plain)
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
-                    }
-                    .padding(.horizontal, 28)
-                    .padding(.bottom, 30)
+                        },
+                        isConfirmDisabled: false
+                    )
                 }
-                .frame(width: min(proxy.size.width - 16, 620))
-                .frame(maxHeight: min(proxy.size.height * 0.78, 720))
-                .background(.white.opacity(0.96), in: RoundedRectangle(cornerRadius: 42, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 42).stroke(.white.opacity(0.9), lineWidth: 1.3))
-                .shadow(color: PrototypeColors.primary.opacity(0.14), radius: 28, y: 18)
-                .padding(.horizontal, 8)
-                .padding(.bottom, 8)
+                .padding(24)
+                .padding(.bottom, 12)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea()
         }
         .presentationDetents([.fraction(0.72)])
-        .presentationBackground(.clear)
         .presentationDragIndicator(.hidden)
         .onAppear {
             selectedLockCommitment = .sevenDays
@@ -1835,20 +3013,26 @@ struct TopOneRootView: View {
         NavigationStack {
             ZStack {
                 PrototypeColors.background.ignoresSafeArea()
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 16) {
                     Text("更新进度")
-                        .font(.largeTitle.bold())
+                        .font(.system(size: 26, weight: .heavy, design: .rounded))
                         .foregroundStyle(PrototypeColors.primary)
                     Text(goal.title)
+                        .font(.subheadline)
                         .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                        .lineLimit(2)
                     TextField("进度百分比（0-100）", text: $viewModel.progressText)
-                        .font(.system(size: 36, weight: .heavy, design: .rounded))
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 30, weight: .heavy, design: .rounded))
                         .foregroundStyle(PrototypeColors.tertiary)
-                        .padding(18)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    Spacer()
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    Text("输入新的完成比例，保存后立即同步到长期任务。")
+                        .font(.footnote)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
                 }
-                .padding(24)
+                .padding(22)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -1859,6 +3043,7 @@ struct TopOneRootView: View {
                 }
             }
         }
+        .presentationDetents([.fraction(0.34)])
     }
 
     private func inlineHintCard(title: String, message: String, highlights: [String]) -> some View {
@@ -1899,104 +3084,90 @@ struct TopOneRootView: View {
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 26) {
-                        VStack(spacing: 10) {
-                            Text("荣耀揭晓")
+                    VStack(spacing: 18) {
+                        VStack(spacing: 8) {
+                            Text("任务完成")
                                 .font(.system(size: 10, weight: .bold))
-                                .tracking(4)
+                                .tracking(3.2)
                                 .foregroundStyle(PrototypeColors.tertiary)
-                            Text("太棒了！\n这是属于你的时刻")
-                                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                            Text(celebration.title)
+                                .font(.system(size: 26, weight: .heavy, design: .rounded))
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(PrototypeColors.primary)
                                 .fixedSize(horizontal: false, vertical: true)
+                            Text(celebration.message)
+                                .font(.subheadline)
+                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        .padding(.top, 20)
+                        .padding(.top, 10)
 
-                        VStack(spacing: 20) {
+                        VStack(spacing: 18) {
                             Text(celebration.badge)
-                                .font(.system(size: 11, weight: .black))
-                                .tracking(1.8)
+                                .font(.system(size: 10, weight: .black))
+                                .tracking(1.4)
                                 .foregroundStyle(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 7)
                                 .background(LinearGradient(colors: [PrototypeColors.primary, PrototypeColors.primaryContainer], startPoint: .leading, endPoint: .trailing), in: Capsule())
 
                             ZStack {
                                 Circle()
                                     .fill(PrototypeColors.surfaceContainerLow)
-                                    .frame(width: 132, height: 132)
+                                    .frame(width: 124, height: 124)
                                 Circle()
-                                    .stroke(PrototypeColors.tertiary.opacity(0.14), lineWidth: 1.5)
-                                    .frame(width: 156, height: 156)
-                                Circle()
-                                    .stroke(PrototypeColors.tertiary.opacity(0.08), lineWidth: 1)
-                                    .frame(width: 186, height: 186)
-                                Image(systemName: celebration.icon)
-                                    .font(.system(size: 42, weight: .semibold))
-                                    .foregroundStyle(PrototypeColors.tertiary)
-                            }
-                            .padding(.top, 8)
-                            .padding(.bottom, 4)
+                                    .stroke(PrototypeColors.tertiary.opacity(0.12), lineWidth: 2)
+                                    .frame(width: 144, height: 144)
 
-                            VStack(spacing: 10) {
-                                Text(celebration.title)
-                                    .font(.system(size: 32, weight: .black, design: .rounded))
-                                    .foregroundStyle(PrototypeColors.primary)
-                                    .multilineTextAlignment(.center)
-                                Text(celebration.message)
-                                    .font(.body)
-                                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
-                                    .multilineTextAlignment(.center)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                VStack(spacing: 5) {
+                                    Image(systemName: "sparkles")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundStyle(PrototypeColors.tertiary)
+                                    Text("+\(celebration.pointsAwarded)")
+                                        .font(.system(size: 34, weight: .black, design: .rounded))
+                                        .foregroundStyle(PrototypeColors.primary)
+                                        .monospacedDigit()
+                                    Text("积分")
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                                }
                             }
 
-                            Text(celebration.archiveNote)
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundStyle(PrototypeColors.onSurfaceVariant)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
-                                .background(PrototypeColors.secondaryContainer.opacity(0.36), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                            VStack(spacing: 12) {
+                            if case let .dailyTask(task) = celebration,
+                               let relatedGoal = task.goal {
                                 Button {
                                     self.celebration = nil
+                                    viewModel.prepareProgressEditor(for: relatedGoal)
                                 } label: {
-                                    Label("立即领取奖励", systemImage: "sparkles")
-                                        .font(.headline.weight(.bold))
-                                        .foregroundStyle(.white)
+                                    Label("更新长期任务进度", systemImage: "chart.line.uptrend.xyaxis")
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundStyle(PrototypeColors.primary)
                                         .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 18)
-                                        .background(PrototypeColors.primary, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                        .padding(.vertical, 15)
+                                        .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                                 }
                                 .buttonStyle(.plain)
-
-                                Button("在奖励池查看更多") {
-                                    self.celebration = nil
-                                }
-                                .buttonStyle(.plain)
-                                .font(.headline.weight(.semibold))
-                                .foregroundStyle(PrototypeColors.primary.opacity(0.74))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(PrototypeColors.surfaceContainerLowest.opacity(0.92), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 18).stroke(PrototypeColors.outlineVariant.opacity(0.24)))
                             }
-                        }
-                        .padding(.horizontal, 22)
-                        .padding(.vertical, 28)
-                        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 40, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 40).stroke(.white.opacity(0.9), lineWidth: 1.2))
-                        .shadow(color: PrototypeColors.primary.opacity(0.12), radius: 28, y: 16)
 
-                        Text("请在月底前完成兑换")
-                            .font(.system(size: 10, weight: .bold))
-                            .tracking(2.8)
-                            .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.48))
-                            .padding(.bottom, 18)
+                            Button("去抽卡") {
+                                self.celebration = nil
+                                selectedRootPage = .rewards
+                            }
+                            .buttonStyle(.plain)
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                            .background(PrototypeColors.primary, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 22)
+                        .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 32).stroke(.white.opacity(0.9), lineWidth: 1.2))
+                        .shadow(color: PrototypeColors.primary.opacity(0.10), radius: 22, y: 12)
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 22)
                 }
             }
             .toolbar {
@@ -2232,15 +3403,6 @@ private enum CompletionCelebration: Identifiable {
         }
     }
 
-    var icon: String {
-        switch self {
-        case .goal:
-            "trophy.fill"
-        case .dailyTask:
-            "checkmark.circle.fill"
-        }
-    }
-
     var title: String {
         switch self {
         case let .goal(goal):
@@ -2259,12 +3421,39 @@ private enum CompletionCelebration: Identifiable {
         }
     }
 
-    var archiveNote: String {
+    var pointsAwarded: Int {
         switch self {
         case let .goal(goal):
-            "此成就已永久存入《\(goal.title)》的里程碑档案。"
+            switch goal.rank {
+            case .s:
+                20
+            case .a:
+                10
+            case .b:
+                6
+            case .c:
+                4
+            }
         case let .dailyTask(task):
-            "此完成记录已写入《\(task.goal?.title ?? "当前专注")》的执行轨迹。"
+            switch task.rank {
+            case .s:
+                12
+            case .a:
+                8
+            case .b:
+                5
+            case .c:
+                3
+            }
+        }
+    }
+
+    var relatedGoal: Goal? {
+        switch self {
+        case let .goal(goal):
+            goal
+        case let .dailyTask(task):
+            task.goal
         }
     }
 }

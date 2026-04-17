@@ -113,7 +113,13 @@ struct GoalService {
         } else {
             goal.completedAt = nil
         }
-        try modelContext.save()
+
+        if goal.isCompleted && !goal.rewardPointsAwarded {
+            goal.rewardPointsAwarded = true
+            _ = try RewardService().awardPoints(for: .goal(rank: goal.rank, title: goal.title), in: modelContext)
+        } else {
+            try modelContext.save()
+        }
     }
 
     @discardableResult
@@ -165,6 +171,7 @@ struct GoalService {
         guard task.goal?.isTopOne == true else {
             throw GoalServiceError.topOneRequired
         }
+
         if status == .inProgress && task.status != .inProgress {
             guard inProgressDailyTasks(for: task.goal).count < Self.inProgressDailyTaskLimit else {
                 throw GoalServiceError.inProgressDailyTaskLimitReached
@@ -176,7 +183,13 @@ struct GoalService {
         }
 
         task.status = status
-        try modelContext.save()
+
+        if task.status == .completed && !task.rewardPointsAwarded {
+            task.rewardPointsAwarded = true
+            _ = try RewardService().awardPoints(for: .dailyTask(rank: task.rank, title: task.title), in: modelContext)
+        } else {
+            try modelContext.save()
+        }
     }
 
     func switchReasonDelta(for reason: String, requiredLength: Int = minimumSwitchReasonLength) -> Int {

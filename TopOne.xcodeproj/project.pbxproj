@@ -23,6 +23,11 @@
 		D9325099449FCE3992923E55 /* DailyTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D07C10CA9F92237B52837B1 /* DailyTask.swift */; };
 		DA2904DAE4ECD8C611B74CEA /* DailyTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D07C10CA9F92237B52837B1 /* DailyTask.swift */; };
 		F5FF41DD14891DCD54C88ADE /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CE4859E0D1200F3A6AAE3C8 /* Goal.swift */; };
+		61D4A4A10F83E7E100A1B201 /* RewardDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D4A4A00F83E7E100A1B201 /* RewardDefinition.swift */; };
+		61D4A4A30F83E7E100A1B201 /* RewardAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D4A4A20F83E7E100A1B201 /* RewardAccount.swift */; };
+		61D4A4A50F83E7E100A1B201 /* RewardInventoryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D4A4A40F83E7E100A1B201 /* RewardInventoryItem.swift */; };
+		61D4A4A70F83E7E100A1B201 /* RewardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D4A4A60F83E7E100A1B201 /* RewardService.swift */; };
+		61D4A4A90F83E7E100A1B201 /* RewardPointTransaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D4A4A80F83E7E100A1B201 /* RewardPointTransaction.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +56,11 @@
 		B9478D826C7EA657B4FBC22C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BABCAFEF3A03E099E09A29AC /* TopOneCoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopOneCoreTests.swift; sourceTree = "<group>"; };
 		BFC8FFC691E02390B4BC0228 /* GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalService.swift; sourceTree = "<group>"; };
+			61D4A4A00F83E7E100A1B201 /* RewardDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardDefinition.swift; sourceTree = "<group>"; };
+			61D4A4A20F83E7E100A1B201 /* RewardAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardAccount.swift; sourceTree = "<group>"; };
+			61D4A4A40F83E7E100A1B201 /* RewardInventoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardInventoryItem.swift; sourceTree = "<group>"; };
+			61D4A4A60F83E7E100A1B201 /* RewardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardService.swift; sourceTree = "<group>"; };
+			61D4A4A80F83E7E100A1B201 /* RewardPointTransaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardPointTransaction.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -103,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				BFC8FFC691E02390B4BC0228 /* GoalService.swift */,
+				61D4A4A60F83E7E100A1B201 /* RewardService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -120,6 +131,10 @@
 			children = (
 				3D07C10CA9F92237B52837B1 /* DailyTask.swift */,
 				1CE4859E0D1200F3A6AAE3C8 /* Goal.swift */,
+				61D4A4A00F83E7E100A1B201 /* RewardDefinition.swift */,
+				61D4A4A20F83E7E100A1B201 /* RewardAccount.swift */,
+				61D4A4A40F83E7E100A1B201 /* RewardInventoryItem.swift */,
+				61D4A4A80F83E7E100A1B201 /* RewardPointTransaction.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -298,6 +313,11 @@
 				5E4A6935E4812361B562E8F2 /* Goal.swift in Sources */,
 				9F3725F9673D6B6F5C8860B6 /* GoalService.swift in Sources */,
 				8BC0C8C457AEB05E8879FEA6 /* HomeViewModel.swift in Sources */,
+				61D4A4A70F83E7E100A1B201 /* RewardService.swift in Sources */,
+				61D4A4A10F83E7E100A1B201 /* RewardDefinition.swift in Sources */,
+				61D4A4A30F83E7E100A1B201 /* RewardAccount.swift in Sources */,
+				61D4A4A50F83E7E100A1B201 /* RewardInventoryItem.swift in Sources */,
+				61D4A4A90F83E7E100A1B201 /* RewardPointTransaction.swift in Sources */,
 				877B478E5A8720E3194F0375 /* PersistenceController.swift in Sources */,
 				881420118AF76308689D2DCB /* TopOneRootView.swift in Sources */,
 				D78C367D0B58E391882B8BC9 /* TopOnemacOSApp.swift in Sources */,
@@ -320,6 +340,11 @@
 				F5FF41DD14891DCD54C88ADE /* Goal.swift in Sources */,
 				387AF00D3539B246A541AD88 /* GoalService.swift in Sources */,
 				63BF22D2FD9DA582B849E412 /* HomeViewModel.swift in Sources */,
+				61D4A4A70F83E7E100A1B201 /* RewardService.swift in Sources */,
+				61D4A4A10F83E7E100A1B201 /* RewardDefinition.swift in Sources */,
+				61D4A4A30F83E7E100A1B201 /* RewardAccount.swift in Sources */,
+				61D4A4A50F83E7E100A1B201 /* RewardInventoryItem.swift in Sources */,
+				61D4A4A90F83E7E100A1B201 /* RewardPointTransaction.swift in Sources */,
 				BA333BC634001E32C4AB66AE /* PersistenceController.swift in Sources */,
 				1158AB1606742118508E209E /* TopOneRootView.swift in Sources */,
 				A4FFBC13EF9077795B00A00E /* TopOneiOSApp.swift in Sources */,

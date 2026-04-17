@@ -31,12 +31,36 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
+    struct RewardDraft: Identifiable {
+        let id = UUID()
+        var reward: RewardDefinition?
+        var name: String
+        var icon: String
+        var iconImageData: Data
+        var rank: TaskRank
+        var detail: String
+        var availabilityMode: RewardAvailabilityMode
+        var remainingCount: Int
+
+        init(reward: RewardDefinition? = nil) {
+            self.reward = reward
+            self.name = reward?.name ?? ""
+            self.icon = reward?.icon ?? ""
+            self.iconImageData = reward?.iconImageData ?? Data()
+            self.rank = reward?.rank ?? .a
+            self.detail = reward?.detail ?? ""
+            self.availabilityMode = reward?.availabilityMode ?? .unlimited
+            self.remainingCount = reward?.remainingCount ?? 0
+        }
+    }
+
     enum PendingAction: Identifiable {
         case chooseTopOne(Goal)
         case unbindTopOne(Goal)
         case editProgress(Goal)
         case deleteGoal(Goal)
         case deleteTask(DailyTask)
+        case deleteReward(RewardDefinition)
 
         var id: String {
             switch self {
@@ -50,6 +74,8 @@ final class HomeViewModel: ObservableObject {
                 "delete-goal-\(goal.persistentModelID)"
             case let .deleteTask(task):
                 "delete-task-\(task.persistentModelID)"
+            case let .deleteReward(reward):
+                "delete-reward-\(reward.persistentModelID)"
             }
         }
     }
@@ -57,6 +83,7 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var headline: String
     @Published var goalDraft: GoalDraft?
     @Published var dailyTaskDraft: DailyTaskDraft?
+    @Published var rewardDraft: RewardDraft?
     @Published var pendingAction: PendingAction?
     @Published var lockGoal: Goal?
     @Published var customLockGoal: Goal?
@@ -65,9 +92,12 @@ final class HomeViewModel: ObservableObject {
     @Published var customLockDaysText = ""
     @Published var switchReason = ""
     @Published var progressText = ""
+    @Published var selectedRewardRank: TaskRank = .a
+    @Published var rewardUseAmountText = "1"
     @Published var errorMessage: String?
 
     private let service = GoalService()
+    private let rewardService = RewardService()
 
     init(headline: String = "TopOne") {
         self.headline = headline
@@ -87,6 +117,14 @@ final class HomeViewModel: ObservableObject {
 
     func showEditDailyTask(_ task: DailyTask, defaultGoal: Goal?) {
         dailyTaskDraft = DailyTaskDraft(task: task, defaultGoal: defaultGoal)
+    }
+
+    func showCreateRewardDefinition() {
+        rewardDraft = RewardDraft()
+    }
+
+    func showEditRewardDefinition(_ reward: RewardDefinition) {
+        rewardDraft = RewardDraft(reward: reward)
     }
 
     func saveGoal(in modelContext: ModelContext) {
@@ -138,6 +176,90 @@ final class HomeViewModel: ObservableObject {
         do {
             try service.deleteDailyTask(task, in: modelContext)
             pendingAction = nil
+            errorMessage = nil
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
+
+    func saveRewardDefinition(in modelContext: ModelContext) {
+        guard let draft = rewardDraft else { return }
+
+        do {
+            if let reward = draft.reward {
+                try rewardService.updateRewardDefinition(
+                    reward,
+                    name: draft.name,
+                    icon: draft.icon,
+                    iconImageData: draft.iconImageData,
+                    rank: draft.rank,
+                    detail: draft.detail,
+                    availabilityMode: draft.availabilityMode,
+                    remainingCount: draft.remainingCount,
+                    in: modelContext
+                )
+            } else {
+                _ = try rewardService.createRewardDefinition(
+                    name: draft.name,
+                    icon: draft.icon,
+                    iconImageData: draft.iconImageData,
+                    rank: draft.rank,
+                    detail: draft.detail,
+                    availabilityMode: draft.availabilityMode,
+                    remainingCount: draft.remainingCount,
+                    in: modelContext
+                )
+            }
+            rewardDraft = nil
+            errorMessage = nil
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
+
+    func deleteRewardDefinition(_ reward: RewardDefinition, in modelContext: ModelContext) {
+        do {
+            try rewardService.deleteRewardDefinition(reward, in: modelContext)
+            pendingAction = nil
+            errorMessage = nil
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
+
+    func prepareRewardUsage() {
+        rewardUseAmountText = "1"
+        errorMessage = nil
+    }
+
+    @discardableResult
+    func drawReward(in modelContext: ModelContext) -> RewardDefinition? {
+        drawReward(for: selectedRewardRank, in: modelContext)
+    }
+
+    @discardableResult
+    func drawReward(for rank: TaskRank, in modelContext: ModelContext) -> RewardDefinition? {
+        do {
+            let reward = try rewardService.drawReward(for: rank, in: modelContext)
+            selectedRewardRank = rank
+            errorMessage = nil
+            return reward
+        } catch {
+            errorMessage = message(for: error)
+            return nil
+        }
+    }
+
+    func useReward(_ item: RewardInventoryItem, in modelContext: ModelContext) {
+        let trimmed = rewardUseAmountText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let amount = Int(trimmed) else {
+            errorMessage = message(for: RewardServiceError.invalidUseAmount)
+            return
+        }
+
+        do {
+            try rewardService.useReward(item, amount: amount, in: modelContext)
+            rewardUseAmountText = "1"
             errorMessage = nil
         } catch {
             errorMessage = message(for: error)
@@ -246,33 +368,54 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func message(for error: Error) -> String {
-        guard let error = error as? GoalServiceError else {
-            return "操作失败，请重试"
+        if let error = error as? GoalServiceError {
+            switch error {
+            case .invalidGoalTitle:
+                return "长期任务标题需为 1 到 16 个字符"
+            case .invalidDailyTaskTitle:
+                return "日常任务标题需为 1 到 32 个字符"
+            case .activeGoalLimitReached:
+                return "未完成长期任务最多 3 个"
+            case .dailyTaskLimitReached:
+                return "该长期任务下未完成日常任务最多 5 个"
+            case .inProgressDailyTaskLimitReached:
+                return "执行中的日常任务最多 2 个"
+            case .goalRequired:
+                return "请选择所属长期任务"
+            case .topOneAlreadyExists:
+                return "请先解绑当前 TopOne"
+            case .topOneRequired:
+                return "仅当前 TopOne 下的日常任务可更新状态"
+            case let .reasonTooShort(required, actual):
+                return "更换理由至少 \(required) 字，当前 \(actual) 字"
+            case let .reasonTooLong(maximum):
+                return "更换理由不能超过 \(maximum) 字"
+            case .invalidCustomLockDuration:
+                return "自定义锁定时间需在 1 到 180 天内"
+            }
         }
 
-        switch error {
-        case .invalidGoalTitle:
-            return "长期任务标题需为 1 到 16 个字符"
-        case .invalidDailyTaskTitle:
-            return "日常任务标题需为 1 到 32 个字符"
-        case .activeGoalLimitReached:
-            return "未完成长期任务最多 3 个"
-        case .dailyTaskLimitReached:
-            return "该长期任务下未完成日常任务最多 5 个"
-        case .inProgressDailyTaskLimitReached:
-            return "执行中的日常任务最多 2 个"
-        case .goalRequired:
-            return "请选择所属长期任务"
-        case .topOneAlreadyExists:
-            return "请先解绑当前 TopOne"
-        case .topOneRequired:
-            return "仅当前 TopOne 下的日常任务可更新状态"
-        case let .reasonTooShort(required, actual):
-            return "更换理由至少 \(required) 字，当前 \(actual) 字"
-        case let .reasonTooLong(maximum):
-            return "更换理由不能超过 \(maximum) 字"
-        case .invalidCustomLockDuration:
-            return "自定义锁定时间需在 1 到 180 天内"
+        if let error = error as? RewardServiceError {
+            switch error {
+            case .invalidRewardName:
+                return "奖励名称需为 1 到 32 个字符"
+            case .rewardImageRequired:
+                return "请为奖励选择一张图片图标"
+            case .invalidLimitedRewardCount:
+                return "限量奖励至少需要 1 份库存"
+            case let .insufficientPoints(required, actual):
+                return "积分不足，还需 \(max(required - actual, 0)) 分"
+            case .rewardNotFound:
+                return "该等级下暂无可用奖励"
+            case .rewardUnavailable:
+                return "奖励已被领完，请换一个试试"
+            case .invalidUseAmount:
+                return "使用数量至少为 1"
+            case .insufficientInventory:
+                return "库存不足，无法完成本次领取"
+            }
         }
+
+        return "操作失败，请重试"
     }
 }

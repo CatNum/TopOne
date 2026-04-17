@@ -40,6 +40,7 @@ final class DailyTask {
     var createdAt: Date
     var startedAt: Date?
     var endedAt: Date?
+    var rewardPointsAwarded: Bool
     var goal: Goal?
 
     var status: DailyTaskStatus {
@@ -59,6 +60,7 @@ final class DailyTask {
         createdAt: Date = .now,
         startedAt: Date? = nil,
         endedAt: Date? = nil,
+        rewardPointsAwarded: Bool = false,
         goal: Goal? = nil
     ) {
         self.title = DailyTask.normalizedTitle(from: title)
@@ -67,6 +69,7 @@ final class DailyTask {
         self.createdAt = createdAt
         self.startedAt = startedAt
         self.endedAt = endedAt
+        self.rewardPointsAwarded = rewardPointsAwarded
         self.goal = goal
     }
 
