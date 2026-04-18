@@ -10,6 +10,7 @@ enum RewardPointChangeReason: String, Codable {
     case completeDailyTask
     case completeGoal
     case drawReward
+    case exchangeReward
 }
 
 @Model

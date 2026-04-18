@@ -37,20 +37,22 @@ final class HomeViewModel: ObservableObject {
         var name: String
         var icon: String
         var iconImageData: Data
-        var rank: TaskRank
+        var rewardTier: RewardTier
         var detail: String
         var availabilityMode: RewardAvailabilityMode
         var remainingCount: Int
+        var sssPointCost: Int
 
         init(reward: RewardDefinition? = nil) {
             self.reward = reward
             self.name = reward?.name ?? ""
             self.icon = reward?.icon ?? ""
             self.iconImageData = reward?.iconImageData ?? Data()
-            self.rank = reward?.rank ?? .a
+            self.rewardTier = reward?.rewardTier ?? .a
             self.detail = reward?.detail ?? ""
             self.availabilityMode = reward?.availabilityMode ?? .unlimited
             self.remainingCount = reward?.remainingCount ?? 0
+            self.sssPointCost = reward?.sssPointCost ?? RewardDefinition.minimumSSSPointCost
         }
     }
 
@@ -92,7 +94,7 @@ final class HomeViewModel: ObservableObject {
     @Published var customLockDaysText = ""
     @Published var switchReason = ""
     @Published var progressText = ""
-    @Published var selectedRewardRank: TaskRank = .a
+    @Published var selectedRewardTier: RewardTier = .a
     @Published var rewardUseAmountText = "1"
     @Published var errorMessage: String?
 
@@ -192,7 +194,8 @@ final class HomeViewModel: ObservableObject {
                     name: draft.name,
                     icon: draft.icon,
                     iconImageData: draft.iconImageData,
-                    rank: draft.rank,
+                    rewardTier: draft.rewardTier,
+                    sssPointCost: draft.rewardTier == .sss ? draft.sssPointCost : RewardDefinition.minimumSSSPointCost,
                     detail: draft.detail,
                     availabilityMode: draft.availabilityMode,
                     remainingCount: draft.remainingCount,
@@ -203,7 +206,8 @@ final class HomeViewModel: ObservableObject {
                     name: draft.name,
                     icon: draft.icon,
                     iconImageData: draft.iconImageData,
-                    rank: draft.rank,
+                    rewardTier: draft.rewardTier,
+                    sssPointCost: draft.rewardTier == .sss ? draft.sssPointCost : RewardDefinition.minimumSSSPointCost,
                     detail: draft.detail,
                     availabilityMode: draft.availabilityMode,
                     remainingCount: draft.remainingCount,
@@ -234,14 +238,18 @@ final class HomeViewModel: ObservableObject {
 
     @discardableResult
     func drawReward(in modelContext: ModelContext) -> RewardDefinition? {
-        drawReward(for: selectedRewardRank, in: modelContext)
+        guard let rank = selectedRewardTier.normalRank else {
+            errorMessage = "SSS 奖励不参与抽卡，请直接兑换"
+            return nil
+        }
+        return drawReward(for: rank, in: modelContext)
     }
 
     @discardableResult
     func drawReward(for rank: TaskRank, in modelContext: ModelContext) -> RewardDefinition? {
         do {
             let reward = try rewardService.drawReward(for: rank, in: modelContext)
-            selectedRewardRank = rank
+            selectedRewardTier = RewardTier(rawValue: rank.rawValue) ?? .a
             errorMessage = nil
             return reward
         } catch {
@@ -263,6 +271,30 @@ final class HomeViewModel: ObservableObject {
             errorMessage = nil
         } catch {
             errorMessage = message(for: error)
+        }
+    }
+
+    @discardableResult
+    func exchangeNormalRewardDirectly(_ reward: RewardDefinition, in modelContext: ModelContext) -> RewardInventoryItem? {
+        do {
+            let item = try rewardService.exchangeNormalRewardDirectly(reward, in: modelContext)
+            errorMessage = nil
+            return item
+        } catch {
+            errorMessage = message(for: error)
+            return nil
+        }
+    }
+
+    @discardableResult
+    func exchangeSSSRewardDirectly(_ reward: RewardDefinition, in modelContext: ModelContext) -> RewardInventoryItem? {
+        do {
+            let item = try rewardService.exchangeSSSRewardDirectly(reward, in: modelContext)
+            errorMessage = nil
+            return item
+        } catch {
+            errorMessage = message(for: error)
+            return nil
         }
     }
 
@@ -403,12 +435,18 @@ final class HomeViewModel: ObservableObject {
                 return "请为奖励选择一张图片图标"
             case .invalidLimitedRewardCount:
                 return "限量奖励至少需要 1 份库存"
+            case let .invalidSSSPointCost(minimum):
+                return "SSS 奖励至少需要 \(minimum) 积分"
             case let .insufficientPoints(required, actual):
                 return "积分不足，还需 \(max(required - actual, 0)) 分"
             case .rewardNotFound:
                 return "该等级下暂无可用奖励"
             case .rewardUnavailable:
                 return "奖励已被领完，请换一个试试"
+            case let .drawPoolTooSmall(_, minimum, actual):
+                return "当前等级可用奖励仅有 \(actual) 个，至少需要 \(minimum) 个才能抽取"
+            case .noExchangeCredit:
+                return "当前等级暂无可用直兑次数，请先抽奖累积"
             case .invalidUseAmount:
                 return "使用数量至少为 1"
             case .insufficientInventory:

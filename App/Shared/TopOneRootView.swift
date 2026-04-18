@@ -44,8 +44,13 @@ struct TopOneRootView: View {
     @State private var showsRewardManagement = false
     @State private var showsRewardPointHistory = false
     @State private var showsRewardPointRules = false
+    @State private var showsRewardHomeRules = false
+    @State private var showsRewardTierRules = false
+    @State private var showsTaskLimitRules = false
     @State private var rewardPointHistoryPageSize = 20
     @State private var rewardDrawResult: RewardDefinition?
+    @State private var showsRewardExchange = false
+    @State private var selectedExchangeTier: RewardTier = .a
     @State private var selectedRewardImageItem: PhotosPickerItem?
     @State private var isRewardCarouselAnimating = false
     @State private var rewardCarouselBoost = false
@@ -72,23 +77,55 @@ struct TopOneRootView: View {
         rewardAccounts.reduce(0) { $0 + $1.points }
     }
 
-    private var rewardDefinitionsByRank: [(TaskRank, [RewardDefinition])] {
-        TaskRank.allCases.map { rank in
-            (rank, rewardDefinitions.filter { $0.rank == rank })
+    private var rewardDefinitionsByTier: [(RewardTier, [RewardDefinition])] {
+        RewardTier.allCases.map { tier in
+            (tier, rewardDefinitions.filter { $0.rewardTier == tier })
         }
         .filter { !$0.1.isEmpty }
     }
 
-    private var currentRewardRank: TaskRank {
-        viewModel.selectedRewardRank
+    private var currentRewardTier: RewardTier {
+        viewModel.selectedRewardTier
     }
 
     private var currentRankRewards: [RewardDefinition] {
-        rewardDefinitions.filter { $0.rank == currentRewardRank }
+        rewardDefinitions.filter { $0.rewardTier == currentRewardTier }
     }
 
     private var currentRankAvailableRewards: [RewardDefinition] {
         currentRankRewards.filter { $0.availabilityMode == .unlimited || $0.remainingCount > 0 }
+    }
+
+    private var currentRank: TaskRank? {
+        currentRewardTier.normalRank
+    }
+
+    private var currentRankDrawCost: Int {
+        guard let currentRank else { return 0 }
+        return RewardService().drawCost(for: currentRank)
+    }
+
+    private var currentRankDrawCount: Int {
+        guard let currentRank else { return 0 }
+        return (rewardAccounts.first?.drawCountsByTier[currentRank.rawValue] ?? 0) % 10
+    }
+
+    private var currentRankExchangeCreditCount: Int {
+        guard let currentRank else { return 0 }
+        return rewardAccounts.first?.exchangeCreditsByTier[currentRank.rawValue] ?? 0
+    }
+
+    private var currentRankNeedsMoreRewardsCount: Int {
+        max(5 - currentRankAvailableRewards.count, 0)
+    }
+
+    private var currentRankCanDraw: Bool {
+        guard currentRewardTier != .sss else { return false }
+        return currentRankAvailableRewards.count >= 5 && rewardPoints >= currentRankDrawCost && !isRewardCarouselAnimating
+    }
+
+    private var currentSSSRewards: [RewardDefinition] {
+        rewardDefinitions.filter { $0.rewardTier == .sss }
     }
 
     private var availableRewardCount: Int {
@@ -216,6 +253,9 @@ struct TopOneRootView: View {
             .sheet(item: $rewardDrawResult) { (reward: RewardDefinition) in
                 rewardDrawResultSheet(reward)
             }
+            .sheet(isPresented: $showsRewardExchange) {
+                rewardDirectExchangeSheet
+            }
             .sheet(item: deleteModalAction) { (action: HomeViewModel.PendingAction) in
                 deleteConfirmationSheet(action)
             }
@@ -305,10 +345,38 @@ struct TopOneRootView: View {
                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                 .tracking(-0.8)
                 .foregroundStyle(PrototypeColors.primary)
-            Text("通过有意识的每日专注，开启你的卓越之路。")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(PrototypeColors.onSurfaceVariant)
-                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(alignment: .center, spacing: 8) {
+                Text("通过有意识的每日专注，开启你的卓越之路。")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showsTaskLimitRules.toggle()
+                    }
+                } label: {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.42))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("查看任务积分限制")
+            }
+
+            if showsTaskLimitRules {
+                inlineHintCard(
+                    title: "任务积分限制",
+                    message: "任务完成仍然正常记录，但积分发放会受到每日规则约束。",
+                    highlights: [
+                        "日常任务积分每天最多累计 30 分，超过后继续完成任务会记录 +0。",
+                        "长期任务积分每天只发放 1 次，之后当天再完成长期任务会记录 +0。",
+                        "这些限制只影响积分发放，不影响任务本身的完成状态。"
+                    ]
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
         .padding(.top, 2)
     }
@@ -637,28 +705,45 @@ struct TopOneRootView: View {
 
             HStack(spacing: 12) {
                 Button {
-                    showsRewardInventory = true
+                    showsRewardManagement = true
                 } label: {
-                    Label("我的奖励", systemImage: "shippingbox.fill")
+                    Label("奖励管理", systemImage: "square.grid.2x2")
                         .font(.subheadline.weight(.bold))
                         .lineLimit(1)
                         .foregroundStyle(PrototypeColors.primary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(PrototypeColors.surfaceContainerHigh, in: Capsule())
+                        .overlay(Capsule().stroke(PrototypeColors.outlineVariant.opacity(0.12)))
                 }
                 .buttonStyle(.plain)
 
                 Button {
-                    showsRewardManagement = true
+                    selectedExchangeTier = currentRewardTier == .sss ? .sss : .a
+                    showsRewardExchange = true
                 } label: {
-                    Label("奖励管理", systemImage: "slider.horizontal.3")
+                    Label("直接兑换", systemImage: "gift.circle")
                         .font(.subheadline.weight(.bold))
                         .lineLimit(1)
-                        .foregroundStyle(PrototypeColors.onTertiaryFixed)
+                        .foregroundStyle(PrototypeColors.primary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+                        .background(PrototypeColors.surfaceContainerHigh, in: Capsule())
+                        .overlay(Capsule().stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showsRewardInventory = true
+                } label: {
+                    Label("我的奖励", systemImage: "shippingbox.circle")
+                        .font(.subheadline.weight(.bold))
+                        .lineLimit(1)
+                        .foregroundStyle(PrototypeColors.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(PrototypeColors.surfaceContainerHigh, in: Capsule())
+                        .overlay(Capsule().stroke(PrototypeColors.outlineVariant.opacity(0.12)))
                 }
                 .buttonStyle(.plain)
             }
@@ -670,22 +755,38 @@ struct TopOneRootView: View {
     private var rewardPoolSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             rewardPointsCard
+            rewardHomeRuleHeader
 
-            rankSelectionCard(
-                title: "选择抽卡等级",
-                rank: Binding(
-                    get: { viewModel.selectedRewardRank },
-                    set: { viewModel.selectedRewardRank = $0 }
+            if showsRewardHomeRules {
+                inlineHintCard(
+                    title: "抽卡与领取规则",
+                    message: "按当前等级查看可抽奖池或 SSS 直领列表。",
+                    highlights: [
+                        "普通等级 S / A / B / C 按当前等级池抽卡，结果会随机落到该池里的一个可用奖励。",
+                        "每满 10 抽，会累积 1 次当前等级的直兑次数，可直接领取该等级奖励。",
+                        "SSS 不参与抽卡，只展示大奖励列表，满足条件后直接领取。"
+                    ]
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            rewardTierSelectionCard(
+                title: "选择奖励等级",
+                rewardTier: Binding(
+                    get: { viewModel.selectedRewardTier },
+                    set: { viewModel.selectedRewardTier = $0 }
                 ),
-                note: "等级选择固定在页面上方；下方奖池会按当前等级滚动预览。"
+                availableTiers: [.s, .a, .b, .c],
+                note: "普通等级用于抽卡；SSS 只用于大奖励直接兑换。"
             )
 
             if currentRankRewards.isEmpty {
                 rewardEmptyStateCard(
                     title: "当前等级池还没有奖励",
-                    message: "先去奖励管理添加 Rank \(currentRewardRank.rawValue) 的奖励，再回来抽卡。"
+                    message: "先去奖励管理添加 Rank \(currentRewardTier.rawValue) 的奖励，再回来抽卡。"
                 )
             } else {
+                rewardPoolStatusCard
                 rewardCarouselCard
                 rewardPrimaryDrawButton
             }
@@ -885,12 +986,13 @@ struct TopOneRootView: View {
             triggerRewardDraw()
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: "sparkles")
+                Image(systemName: currentRankCanDraw ? "sparkles" : "lock.circle")
                     .font(.headline.weight(.bold))
-                Text(rewardDrawButtonLabel(for: currentRewardRank))
+                Text(rewardDrawButtonLabel(for: currentRewardTier.normalRank ?? .a))
                     .font(.headline.weight(.bold))
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.9)
+                    .multilineTextAlignment(.center)
             }
             .foregroundStyle(PrototypeColors.onTertiaryFixed)
             .frame(maxWidth: .infinity)
@@ -899,7 +1001,7 @@ struct TopOneRootView: View {
         }
         .buttonStyle(.plain)
         .padding(.top, 2)
-        .disabled(currentRankAvailableRewards.isEmpty || rewardPoints < RewardService().drawCost(for: currentRewardRank) || isRewardCarouselAnimating)
+        .disabled(!currentRankCanDraw)
     }
 
     private var rewardPointsCard: some View {
@@ -916,6 +1018,9 @@ struct TopOneRootView: View {
                         .font(.system(size: 32, weight: .heavy, design: .rounded))
                         .foregroundStyle(PrototypeColors.primary)
                         .monospacedDigit()
+                    Text("完成任务可加分；抽卡和兑换会扣分")
+                        .font(.footnote)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
@@ -934,6 +1039,58 @@ struct TopOneRootView: View {
         .buttonStyle(.plain)
     }
 
+    private var rewardHomeRuleHeader: some View {
+        HStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("抽卡 / 兑换规则")
+                    .font(.caption.weight(.bold))
+                    .tracking(1.1)
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                Text("按当前等级查看可抽奖池或 SSS 直兑列表。")
+                    .font(.footnote)
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+            }
+
+            Spacer()
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    showsRewardHomeRules.toggle()
+                }
+            } label: {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.42))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("查看奖励规则")
+        }
+    }
+
+    private var rewardPoolStatusCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("当前等级进度")
+                        .font(.caption.weight(.bold))
+                        .tracking(1.1)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                    Text("Rank \(currentRewardTier.rawValue) 已抽 \(currentRankDrawCount) 次")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(PrototypeColors.primary)
+                    Text(rewardPoolStatusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+            }
+        }
+        .padding(20)
+        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 28).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+    }
+
     private var rewardCarouselCard: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
@@ -941,7 +1098,7 @@ struct TopOneRootView: View {
                     .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
                 Spacer()
-                Text("Rank \(currentRewardRank.rawValue)")
+                Text("Rank \(currentRewardTier.rawValue)")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(PrototypeColors.tertiaryFixed)
             }
@@ -965,6 +1122,106 @@ struct TopOneRootView: View {
             in: RoundedRectangle(cornerRadius: 32, style: .continuous)
         )
         .overlay(RoundedRectangle(cornerRadius: 32).stroke(.white.opacity(0.06)))
+    }
+
+    private var rewardDirectExchangeSheet: some View {
+        NavigationStack {
+            ZStack {
+                PrototypeColors.background.ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 24) {
+                        creationHeader(
+                            eyebrow: "直接兑换",
+                            title: selectedExchangeTier == .sss ? "SSS 奖励直兑" : "Rank \(selectedExchangeTier.rawValue) 直兑",
+                            subtitle: selectedExchangeTier == .sss ? "这里集中领取 SSS 大奖励。" : "每满 10 抽会获得 1 次对应等级直兑次数。"
+                        )
+
+                        rewardTierSelectionCard(
+                            title: "筛选兑换等级",
+                            rewardTier: $selectedExchangeTier,
+                            note: ""
+                        )
+
+                        if selectedExchangeTier == .sss {
+                            if currentSSSRewards.isEmpty {
+                                rewardEmptyStateCard(
+                                    title: "还没有 SSS 奖励",
+                                    message: "先去奖励管理新增一个大奖励，再回来直接兑换。"
+                                )
+                            } else {
+                                ForEach(currentSSSRewards) { reward in
+                                    sssRewardCard(reward)
+                                }
+                            }
+                        } else {
+                            let rewards = rewardDefinitions.filter { $0.rewardTier == selectedExchangeTier && ($0.availabilityMode == .unlimited || $0.remainingCount > 0) }
+                            if rewards.isEmpty {
+                                rewardEmptyStateCard(
+                                    title: "当前没有可直兑奖励",
+                                    message: "先补充这个等级的奖励，再回来使用直兑次数。"
+                                )
+                            } else {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("当前可直兑 \(rewardAccounts.first?.exchangeCreditsByTier[selectedExchangeTier.rawValue] ?? 0) 次")
+                                        .font(.headline.weight(.bold))
+                                        .foregroundStyle(PrototypeColors.primary)
+                                    ForEach(rewards) { reward in
+                                        normalRewardDirectExchangeCard(reward, tier: selectedExchangeTier)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(24)
+                    .padding(.bottom, 12)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { showsRewardExchange = false }
+                }
+            }
+        }
+    }
+
+    private func normalRewardDirectExchangeCard(_ reward: RewardDefinition, tier: RewardTier) -> some View {
+        Button {
+            _ = viewModel.exchangeNormalRewardDirectly(reward, in: modelContext)
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(PrototypeColors.primaryFixed)
+                        .frame(width: 48, height: 48)
+                    rewardImageView(for: reward, size: 26)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(reward.name.isEmpty ? "未命名奖励" : reward.name)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(PrototypeColors.primary)
+                    Text(rewardAvailabilityText(reward))
+                        .font(.subheadline)
+                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                }
+
+                Spacer()
+
+                Text("直兑 · -\(RewardService().drawCost(for: tier.normalRank ?? .a)) 分")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(PrototypeColors.onTertiaryFixed)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+            }
+            .padding(18)
+            .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 24).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
+        .disabled((rewardAccounts.first?.exchangeCreditsByTier[tier.rawValue] ?? 0) == 0 || rewardPoints < RewardService().drawCost(for: tier.normalRank ?? .a))
+        .opacity((rewardAccounts.first?.exchangeCreditsByTier[tier.rawValue] ?? 0) == 0 || rewardPoints < RewardService().drawCost(for: tier.normalRank ?? .a) ? 0.56 : 1)
     }
 
     private func rewardIconCarouselRow(offsetSeed: Int) -> some View {
@@ -1059,16 +1316,16 @@ struct TopOneRootView: View {
                         }
                         .buttonStyle(.plain)
 
-                        if rewardDefinitionsByRank.isEmpty {
+                        if rewardDefinitionsByTier.isEmpty {
                             rewardEmptyStateCard(
                                 title: "还没有奖励定义",
                                 message: "先新增奖励，再配置等级、图标和供应方式。"
                             )
                         } else {
                             VStack(spacing: 18) {
-                                ForEach(rewardDefinitionsByRank, id: \.0.id) { rank, rewards in
+                                ForEach(rewardDefinitionsByTier, id: \.0.id) { tier, rewards in
                                     VStack(alignment: .leading, spacing: 12) {
-                                        Text("Rank \(rank.rawValue)")
+                                        Text("等级 \(tier.rawValue)")
                                             .font(.headline.weight(.bold))
                                             .foregroundStyle(PrototypeColors.primary)
 
@@ -1177,12 +1434,12 @@ struct TopOneRootView: View {
 
                         if showsRewardPointRules {
                             inlineHintCard(
-                                title: "积分规则说明",
-                                message: "奖励积分只在任务完成时发生变化；抽卡会按当前等级池消耗对应积分。",
+                                title: "积分获得与花费规则",
+                                message: "积分变化按下面的规则执行。",
                                 highlights: [
-                                    "完成日常任务：S 12 / A 8 / B 5 / C 3",
-                                    "完成长期任务：S 20 / A 10 / B 6 / C 4",
-                                    "抽卡消耗：S 12 / A 5 / B 3 / C 2"
+                                    "完成日常任务：S 12 / A 8 / B 5 / C 3；但日常积分每天最多累计 30 分。",
+                                    "完成长期任务：S 200 / A 100 / B 60 / C 40；但长期任务积分每天只发放 1 次。",
+                                    "抽卡消耗：S 12 / A 5 / B 3 / C 2；普通奖励与 SSS 领取也会在满足条件时扣除对应积分。"
                                 ]
                             )
                             .transition(.move(edge: .top).combined(with: .opacity))
@@ -1333,6 +1590,7 @@ struct TopOneRootView: View {
 
     private func triggerRewardDraw() {
         guard !isRewardCarouselAnimating else { return }
+        guard currentRewardTier != .sss else { return }
         isRewardCarouselAnimating = true
         rewardCarouselBoost = true
 
@@ -1348,12 +1606,67 @@ struct TopOneRootView: View {
 
     private func carouselRewards(offsetSeed: Int) -> [RewardDefinition] {
         let source = currentRankRewards.isEmpty ? currentRankAvailableRewards : currentRankRewards
-        let rewards = source.isEmpty ? rewardDefinitions : source
+        let rewards = source.isEmpty ? rewardDefinitions.filter { $0.rewardTier != .sss } : source
         guard !rewards.isEmpty else { return [] }
 
         let start = offsetSeed % rewards.count
         let rotated = Array(rewards[start...]) + Array(rewards[..<start])
         return Array((0..<4).flatMap { _ in rotated })
+    }
+
+    private var sssRewardListSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if currentSSSRewards.isEmpty {
+                rewardEmptyStateCard(
+                    title: "还没有 SSS 奖励",
+                    message: "先去奖励管理新增一个大奖励，再回来直接兑换。"
+                )
+            } else {
+                ForEach(currentSSSRewards) { reward in
+                    sssRewardCard(reward)
+                }
+            }
+        }
+    }
+
+    private func sssRewardCard(_ reward: RewardDefinition) -> some View {
+        Button {
+            _ = viewModel.exchangeSSSRewardDirectly(reward, in: modelContext)
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(PrototypeColors.tertiaryFixed.opacity(0.88))
+                        .frame(width: 48, height: 48)
+                    rewardImageView(for: reward, size: 26)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(reward.name.isEmpty ? "未命名奖励" : reward.name)
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(PrototypeColors.primary)
+                    if !reward.detail.isEmpty {
+                        Text(reward.detail)
+                            .font(.subheadline)
+                            .foregroundStyle(PrototypeColors.onSurfaceVariant)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                Spacer()
+
+                Text("兑换 · \(max(reward.sssPointCost, RewardDefinition.minimumSSSPointCost)) 积分")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(PrototypeColors.onTertiaryFixed)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(PrototypeColors.tertiaryFixedDim, in: Capsule())
+            }
+            .padding(18)
+            .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 24).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
+        }
+        .buttonStyle(.plain)
     }
 
     private func rewardDefinitionCard(_ reward: RewardDefinition) -> some View {
@@ -1536,11 +1849,11 @@ struct TopOneRootView: View {
         HStack(alignment: .top, spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(transaction.pointsDelta >= 0 ? PrototypeColors.primaryFixed : PrototypeColors.errorContainer)
+                    .fill(transaction.pointsDelta > 0 ? PrototypeColors.primaryFixed : transaction.pointsDelta < 0 ? PrototypeColors.errorContainer : PrototypeColors.surfaceContainerHigh)
                     .frame(width: 42, height: 42)
-                Image(systemName: transaction.pointsDelta >= 0 ? "plus" : "minus")
+                Image(systemName: transaction.pointsDelta > 0 ? "plus" : transaction.pointsDelta < 0 ? "minus" : "equal")
                     .font(.system(size: 16, weight: .black))
-                    .foregroundStyle(transaction.pointsDelta >= 0 ? PrototypeColors.primary : PrototypeColors.error)
+                    .foregroundStyle(transaction.pointsDelta > 0 ? PrototypeColors.primary : transaction.pointsDelta < 0 ? PrototypeColors.error : PrototypeColors.onSurfaceVariant)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -1559,9 +1872,9 @@ struct TopOneRootView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 6) {
-                Text(transaction.pointsDelta >= 0 ? "+\(transaction.pointsDelta)" : "\(transaction.pointsDelta)")
+                Text(transaction.pointsDelta > 0 ? "+\(transaction.pointsDelta)" : transaction.pointsDelta < 0 ? "\(transaction.pointsDelta)" : "±0")
                     .font(.headline.weight(.heavy))
-                    .foregroundStyle(transaction.pointsDelta >= 0 ? PrototypeColors.primary : PrototypeColors.error)
+                    .foregroundStyle(transaction.pointsDelta > 0 ? PrototypeColors.primary : transaction.pointsDelta < 0 ? PrototypeColors.error : PrototypeColors.onSurfaceVariant)
                     .monospacedDigit()
                 Text("余额 \(transaction.balanceAfterChange)")
                     .font(.caption.weight(.medium))
@@ -1577,21 +1890,31 @@ struct TopOneRootView: View {
     private func rewardPointTransactionTitle(_ transaction: RewardPointTransaction) -> String {
         switch transaction.reason {
         case .completeDailyTask:
-            return "完成日常任务"
+            return transaction.pointsDelta == 0 ? "完成日常任务 · 本次未加分" : "完成日常任务"
         case .completeGoal:
-            return "完成长期任务"
+            return transaction.pointsDelta == 0 ? "完成长期任务 · 本次未加分" : "完成长期任务"
         case .drawReward:
             return "抽取 Rank \(transaction.rank.rawValue) 奖励"
+        case .exchangeReward:
+            return "直兑 Rank \(transaction.rank.rawValue) 奖励"
         }
     }
 
     private func rewardPointTransactionSubtitle(_ transaction: RewardPointTransaction) -> String {
         let title = transaction.referenceTitle.isEmpty ? "未命名条目" : transaction.referenceTitle
         switch transaction.reason {
-        case .completeDailyTask, .completeGoal:
-            return "\(title) · Rank \(transaction.rank.rawValue)"
+        case .completeDailyTask:
+            return transaction.pointsDelta == 0
+                ? "\(title) · Rank \(transaction.rank.rawValue) · 今日日常积分已达上限"
+                : "\(title) · Rank \(transaction.rank.rawValue)"
+        case .completeGoal:
+            return transaction.pointsDelta == 0
+                ? "\(title) · Rank \(transaction.rank.rawValue) · 今日长期任务积分已发放"
+                : "\(title) · Rank \(transaction.rank.rawValue)"
         case .drawReward:
             return "消耗积分后抽中了“\(title)”"
+        case .exchangeReward:
+            return "消耗积分与兑换次数后领取了“\(title)”"
         }
     }
 
@@ -1602,6 +1925,16 @@ struct TopOneRootView: View {
         formatter.timeZone = TimeZone(identifier: "Asia/Shanghai")
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return formatter.string(from: date)
+    }
+
+    private var rewardPoolStatusMessage: String {
+        if currentRankAvailableRewards.count < 5 {
+            return "当前等级还差 \(currentRankNeedsMoreRewardsCount) 个可用奖励，满 5 个后才可以抽取。"
+        }
+        if rewardPoints < currentRankDrawCost {
+            return "当前积分不足，抽取 Rank \(currentRewardTier.rawValue) 还需 \(max(currentRankDrawCost - rewardPoints, 0)) 分。"
+        }
+        return "当前等级已满足抽取条件，可以开始抽卡。"
     }
 
     private func rewardDrawButtonLabel(for rank: TaskRank) -> String {
@@ -1615,6 +1948,12 @@ struct TopOneRootView: View {
             cost = 3
         case .c:
             cost = 2
+        }
+        if currentRankAvailableRewards.count < 5 {
+            return "当前等级未满 5 个奖励，暂不可抽取"
+        }
+        if rewardPoints < cost {
+            return "积分不足，还需 \(max(cost - rewardPoints, 0)) 分"
         }
         return "消耗 \(cost) 积分抽取 Rank \(rank.rawValue) 奖励"
     }
@@ -2053,6 +2392,35 @@ struct TopOneRootView: View {
         .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.18)))
     }
 
+    private func rewardTierSelectionCard(title: String, rewardTier: Binding<RewardTier>, availableTiers: [RewardTier] = RewardTier.allCases, note _: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .tracking(1.1)
+                .foregroundStyle(PrototypeColors.onSurfaceVariant)
+            HStack(spacing: 10) {
+                ForEach(availableTiers) { item in
+                    Button {
+                        rewardTier.wrappedValue = item
+                    } label: {
+                        Text(item.rawValue)
+                            .font(.title3.weight(.heavy))
+                            .foregroundStyle(rewardTier.wrappedValue == item ? .white : PrototypeColors.primary)
+                            .frame(width: 50, height: 50)
+                            .background(rewardTier.wrappedValue == item ? PrototypeColors.primary : PrototypeColors.surfaceContainerHigh, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 15).stroke(rewardTier.wrappedValue == item ? PrototypeColors.tertiary.opacity(0.22) : .clear, lineWidth: 4))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .padding(22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.18)))
+    }
+
     private var strategicAssociationCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
@@ -2440,18 +2808,57 @@ struct TopOneRootView: View {
                                 .padding(.vertical, 18)
                         }
 
-                        rankSelectionCard(
-                            title: "奖励等级",
-                            rank: Binding(
-                                get: { viewModel.rewardDraft?.rank ?? draft.rank },
-                                set: {
-                                    guard var current = viewModel.rewardDraft else { return }
-                                    current.rank = $0
-                                    viewModel.rewardDraft = current
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack(alignment: .center, spacing: 8) {
+                                Text("奖励等级")
+                                    .font(.caption.weight(.bold))
+                                    .tracking(1.1)
+                                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        showsRewardTierRules.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .font(.headline)
+                                        .foregroundStyle(PrototypeColors.onSurfaceVariant.opacity(0.42))
                                 }
-                            ),
-                            note: "奖励等级与任务等级共用同一套 S / A / B / C 体系。"
-                        )
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("查看奖励等级说明")
+
+                                Spacer()
+                            }
+
+                            if showsRewardTierRules {
+                                inlineHintCard(
+                                    title: "奖励等级规则",
+                                    message: "SSS 适合放真正稀缺、真正重要的大奖励，用来持续牵引长期任务的执行。",
+                                    highlights: [
+                                        "S / A / B / C 属于普通奖励池，可参与对应等级的抽卡，也可在累计到直兑次数后直接领取。",
+                                        "SSS 不参与抽卡，只能在大奖励列表中按设定积分直接领取。",
+                                        "SSS 级旨在锚定更长远的目标，让那些郑重的自我犒赏，在时间的沉淀后顺理成章地到来。"
+                                    ]
+                                )
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                            }
+
+                            rewardTierSelectionCard(
+                                title: "奖励等级",
+                                rewardTier: Binding(
+                                    get: { viewModel.rewardDraft?.rewardTier ?? draft.rewardTier },
+                                    set: {
+                                        guard var current = viewModel.rewardDraft else { return }
+                                        current.rewardTier = $0
+                                        if $0 != .sss {
+                                            current.sssPointCost = RewardDefinition.minimumSSSPointCost
+                                        }
+                                        viewModel.rewardDraft = current
+                                    }
+                                ),
+                                note: "奖励等级使用 SSS / S / A / B / C，其中 SSS 用于大奖励直接兑换。"
+                            )
+                        }
 
                         VStack(alignment: .leading, spacing: 16) {
                             Text("奖励图标与说明")
@@ -2545,6 +2952,32 @@ struct TopOneRootView: View {
                                     Text("剩余 \(max(viewModel.rewardDraft?.remainingCount ?? draft.remainingCount, 1)) 份")
                                         .font(.subheadline.weight(.medium))
                                         .foregroundStyle(PrototypeColors.primary)
+                                }
+                            }
+
+                            if (viewModel.rewardDraft?.rewardTier ?? draft.rewardTier) == .sss {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("SSS 兑换积分")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(PrototypeColors.primary)
+
+                                    TextField(
+                                        "请输入兑换积分",
+                                        value: Binding(
+                                            get: { max(viewModel.rewardDraft?.sssPointCost ?? draft.sssPointCost, RewardDefinition.minimumSSSPointCost) },
+                                            set: {
+                                                guard var current = viewModel.rewardDraft else { return }
+                                                current.sssPointCost = max($0, RewardDefinition.minimumSSSPointCost)
+                                                viewModel.rewardDraft = current
+                                            }
+                                        ),
+                                        format: .number
+                                    )
+                                    .textFieldStyle(.roundedBorder)
+
+                                    Text("最低 \(RewardDefinition.minimumSSSPointCost) 积分")
+                                        .font(.footnote)
+                                        .foregroundStyle(PrototypeColors.onSurfaceVariant)
                                 }
                             }
                         }
@@ -3121,20 +3554,20 @@ struct TopOneRootView: View {
                                     .frame(width: 144, height: 144)
 
                                 VStack(spacing: 5) {
-                                    Image(systemName: "sparkles")
+                                    Image(systemName: celebration.pointsAwarded > 0 ? "sparkles" : "moon.zzz.fill")
                                         .font(.system(size: 20, weight: .bold))
                                         .foregroundStyle(PrototypeColors.tertiary)
-                                    Text("+\(celebration.pointsAwarded)")
+                                    Text(celebration.pointsAwarded > 0 ? "+\(celebration.pointsAwarded)" : "0")
                                         .font(.system(size: 34, weight: .black, design: .rounded))
                                         .foregroundStyle(PrototypeColors.primary)
                                         .monospacedDigit()
-                                    Text("积分")
+                                    Text(celebration.pointsAwarded > 0 ? "积分" : "本次未加分")
                                         .font(.subheadline.weight(.bold))
                                         .foregroundStyle(PrototypeColors.onSurfaceVariant)
                                 }
                             }
 
-                            if case let .dailyTask(task) = celebration,
+                            if case let .dailyTask(task, _) = celebration,
                                let relatedGoal = task.goal {
                                 Button {
                                     self.celebration = nil
@@ -3182,29 +3615,32 @@ struct TopOneRootView: View {
 
     private func updateGoalProgress(_ goal: Goal, value: Double) {
         let wasCompleted = goal.progress >= 1
+        let previousPoints = rewardPoints
         viewModel.updateProgress(for: goal, value: value, in: modelContext)
         if viewModel.errorMessage == nil, !wasCompleted, goal.progress >= 1 {
-            presentCelebration(.goal(goal))
+            presentCelebration(.goal(goal, pointsAwarded: max(rewardPoints - previousPoints, 0)))
         }
     }
 
     private func saveGoalProgress(_ goal: Goal) {
         let wasCompleted = goal.progress >= 1
+        let previousPoints = rewardPoints
         viewModel.updateProgress(for: goal, in: modelContext)
         if viewModel.errorMessage == nil {
             viewModel.progressGoal = nil
             viewModel.progressText = ""
             if !wasCompleted, goal.progress >= 1 {
-                presentCelebration(.goal(goal))
+                presentCelebration(.goal(goal, pointsAwarded: max(rewardPoints - previousPoints, 0)))
             }
         }
     }
 
     private func updateDailyTaskStatus(_ task: DailyTask, status: DailyTaskStatus) {
         let wasCompleted = task.status == .completed
+        let previousPoints = rewardPoints
         viewModel.updateTaskStatus(task, status: status, in: modelContext)
         if viewModel.errorMessage == nil, !wasCompleted, task.status == .completed {
-            presentCelebration(.dailyTask(task))
+            presentCelebration(.dailyTask(task, pointsAwarded: max(rewardPoints - previousPoints, 0)))
         }
     }
 
@@ -3382,77 +3818,61 @@ private struct CreateTaskPage: Identifiable {
 }
 
 private enum CompletionCelebration: Identifiable {
-    case goal(Goal)
-    case dailyTask(DailyTask)
+    case goal(Goal, pointsAwarded: Int)
+    case dailyTask(DailyTask, pointsAwarded: Int)
 
     var id: String {
         switch self {
-        case let .goal(goal):
+        case let .goal(goal, _):
             "goal-\(goal.persistentModelID)"
-        case let .dailyTask(task):
+        case let .dailyTask(task, _):
             "task-\(task.persistentModelID)-\(task.endedAt?.timeIntervalSince1970 ?? 0)"
         }
     }
 
     var badge: String {
         switch self {
-        case let .goal(goal):
+        case let .goal(goal, _):
             "等级 \(goal.rank.rawValue) • 完美达成"
-        case let .dailyTask(task):
+        case let .dailyTask(task, _):
             "日常推进 • \(task.rank.rawValue) 级完成"
         }
     }
 
     var title: String {
         switch self {
-        case let .goal(goal):
+        case let .goal(goal, _):
             goal.title
-        case let .dailyTask(task):
+        case let .dailyTask(task, _):
             task.title
         }
     }
 
     var message: String {
         switch self {
-        case .goal:
-            "你已经把这件长期任务推进到 100%。这一刻值得被看见，也值得被认真奖励。"
-        case let .dailyTask(task):
-            "今天的推进动作已经完成。每一个被兑现的小承诺，都会把 \(task.goal?.title ?? "你的长期目标") 往前推一点。"
+        case let .goal(_, pointsAwarded):
+            pointsAwarded > 0
+                ? "你已经把这件长期任务推进到 100%。这一刻值得被看见，也值得被认真奖励。"
+                : "你已经把这件长期任务推进到 100%。今天的长期任务积分已发放过，这次不再重复加分。"
+        case let .dailyTask(task, pointsAwarded):
+            pointsAwarded > 0
+                ? "今天的推进动作已经完成。每一个被兑现的小承诺，都会把 \(task.goal?.title ?? "你的长期目标") 往前推一点。"
+                : "今天的推进动作已经完成。只是今日日常任务积分已达上限，这次不再额外加分。"
         }
     }
 
     var pointsAwarded: Int {
         switch self {
-        case let .goal(goal):
-            switch goal.rank {
-            case .s:
-                20
-            case .a:
-                10
-            case .b:
-                6
-            case .c:
-                4
-            }
-        case let .dailyTask(task):
-            switch task.rank {
-            case .s:
-                12
-            case .a:
-                8
-            case .b:
-                5
-            case .c:
-                3
-            }
+        case let .goal(_, pointsAwarded), let .dailyTask(_, pointsAwarded):
+            pointsAwarded
         }
     }
 
     var relatedGoal: Goal? {
         switch self {
-        case let .goal(goal):
+        case let .goal(goal, _):
             goal
-        case let .dailyTask(task):
+        case let .dailyTask(task, _):
             task.goal
         }
     }

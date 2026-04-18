@@ -115,8 +115,13 @@ struct GoalService {
         }
 
         if goal.isCompleted && !goal.rewardPointsAwarded {
-            goal.rewardPointsAwarded = true
-            _ = try RewardService().awardPoints(for: .goal(rank: goal.rank, title: goal.title), in: modelContext)
+            let rewardService = RewardService()
+            let previousPoints = rewardService.fetchRewardAccount(in: modelContext)?.points ?? 0
+            let account = try rewardService.awardPoints(for: .goal(rank: goal.rank, title: goal.title), in: modelContext)
+            if account.points > previousPoints {
+                goal.rewardPointsAwarded = true
+            }
+            try modelContext.save()
         } else {
             try modelContext.save()
         }
@@ -185,8 +190,9 @@ struct GoalService {
         task.status = status
 
         if task.status == .completed && !task.rewardPointsAwarded {
-            task.rewardPointsAwarded = true
             _ = try RewardService().awardPoints(for: .dailyTask(rank: task.rank, title: task.title), in: modelContext)
+            task.rewardPointsAwarded = true
+            try modelContext.save()
         } else {
             try modelContext.save()
         }

@@ -226,6 +226,140 @@ struct TopOneCoreTests {
 
     @MainActor
     @Test
+    func rewardDefinitionSupportsSSSTierAndCustomCost() throws {
+        let definition = RewardDefinition(
+            name: "豪华放空日",
+            iconImageData: validRewardImageData(),
+            rewardTier: .sss,
+            sssPointCost: 999,
+            detail: "完成阶段冲刺后兑换"
+        )
+
+        #expect(definition.rewardTier == .sss)
+        #expect(definition.rewardTierRawValue == "SSS")
+        #expect(definition.isSSSReward)
+        #expect(definition.normalRank == nil)
+        #expect(definition.sssPointCost == 999)
+    }
+
+    @MainActor
+    @Test
+    func rewardDefinitionClampsSSSPointCostToMinimum() throws {
+        let definition = RewardDefinition(
+            name: "豪华放空日",
+            iconImageData: validRewardImageData(),
+            rewardTier: .sss,
+            sssPointCost: 100,
+            detail: "完成阶段冲刺后兑换"
+        )
+
+        #expect(definition.rewardTier == .sss)
+        #expect(definition.sssPointCost == RewardDefinition.minimumSSSPointCost)
+    }
+
+    @MainActor
+    @Test
+    func rewardDefinitionPersistsSSSTierAndPointCost() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let definition = RewardDefinition(
+            name: "豪华放空日",
+            iconImageData: validRewardImageData(),
+            rewardTier: .sss,
+            sssPointCost: 999,
+            detail: "完成阶段冲刺后兑换"
+        )
+        context.insert(definition)
+        try context.save()
+
+        let savedRewards = try context.fetch(FetchDescriptor<RewardDefinition>())
+        let savedReward = try #require(savedRewards.first)
+        #expect(savedReward.rewardTier == .sss)
+        #expect(savedReward.rewardTierRawValue == "SSS")
+        #expect(savedReward.normalRank == nil)
+        #expect(savedReward.sssPointCost == 999)
+    }
+
+    @MainActor
+    @Test
+    func rewardDefinitionKeepsTaskRankForNormalRewards() throws {
+        let definition = RewardDefinition(
+            name: "咖啡时光",
+            iconImageData: validRewardImageData(),
+            rank: .a,
+            detail: "完成关键任务后兑换"
+        )
+
+        #expect(definition.rewardTier == .a)
+        #expect(definition.rewardTierRawValue == "A")
+        #expect(definition.normalRank == .a)
+        #expect(definition.isSSSReward == false)
+        #expect(definition.sssPointCost == RewardDefinition.minimumSSSPointCost)
+        #expect(definition.rank == .a)
+    }
+
+    @MainActor
+    @Test
+    func rewardAccountDefaultsNewStateForMinimalInitialization() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+
+        let account = RewardAccount()
+        context.insert(account)
+        try context.save()
+
+        let stored = try #require(context.fetch(FetchDescriptor<RewardAccount>()).first)
+        #expect(stored.points == 0)
+        #expect(stored.lastPointResetAt == nil)
+        #expect(stored.dailyTaskPointsAwarded == 0)
+        #expect(stored.didAwardGoalPointsToday == false)
+        #expect(stored.drawCountsByTier.isEmpty)
+        #expect(stored.exchangeCreditsByTier.isEmpty)
+    }
+
+    @MainActor
+    @Test
+    func rewardAccountPersistsDailyAndPityState() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+
+        let account = RewardAccount(
+            points: 12,
+            lastPointResetAt: Date(timeIntervalSince1970: 10),
+            dailyTaskPointsAwarded: 20,
+            didAwardGoalPointsToday: true,
+            drawCountsByTier: [RewardTier.a.rawValue: 9],
+            exchangeCreditsByTier: [RewardTier.a.rawValue: 1]
+        )
+        context.insert(account)
+        try context.save()
+
+        let stored = try #require(context.fetch(FetchDescriptor<RewardAccount>()).first)
+        #expect(stored.points == 12)
+        #expect(stored.lastPointResetAt == Date(timeIntervalSince1970: 10))
+        #expect(stored.dailyTaskPointsAwarded == 20)
+        #expect(stored.didAwardGoalPointsToday == true)
+        #expect(stored.drawCountsByTier[RewardTier.a.rawValue] == 9)
+        #expect(stored.exchangeCreditsByTier[RewardTier.a.rawValue] == 1)
+    }
+
+    @MainActor
+    @Test
+    func rewardAccountFallsBackToSafeDefaultsWhenRawStorageIsNil() {
+        let account = RewardAccount()
+        account.dailyTaskPointsAwardedRawValue = nil
+        account.didAwardGoalPointsTodayRawValue = nil
+        account.drawCountsByTierRawValue = nil
+        account.exchangeCreditsByTierRawValue = nil
+
+        #expect(account.dailyTaskPointsAwarded == 0)
+        #expect(account.didAwardGoalPointsToday == false)
+        #expect(account.drawCountsByTier.isEmpty)
+        #expect(account.exchangeCreditsByTier.isEmpty)
+    }
+
+    @MainActor
+    @Test
     func completingDailyTaskAwardsPointsOnce() throws {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
@@ -262,17 +396,112 @@ struct TopOneCoreTests {
         try goalService.updateProgress(for: goal, progress: 1, in: context)
 
         let account = try #require(rewardService.fetchRewardAccount(in: context))
-        #expect(account.points == 6)
+        #expect(account.points == 60)
         #expect(goal.completedAt != nil)
 
         try goalService.updateProgress(for: goal, progress: 1, in: context)
 
-        #expect(account.points == 6)
+        #expect(account.points == 60)
 
         try goalService.updateProgress(for: goal, progress: 0.5, in: context)
         try goalService.updateProgress(for: goal, progress: 1, in: context)
 
-        #expect(account.points == 6)
+        #expect(account.points == 60)
+    }
+
+    @MainActor
+    @Test
+    func completingGoalBlockedByOncePerDayPayoutKeepsRewardFlagFalse() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let goalService = GoalService()
+        let rewardService = RewardService()
+        let firstGoal = try goalService.createGoal(title: "目标一", rank: .a, in: context)
+        let secondGoal = try goalService.createGoal(title: "目标二", rank: .s, in: context)
+
+        try goalService.updateProgress(for: firstGoal, progress: 1, in: context)
+        let account = try #require(rewardService.fetchRewardAccount(in: context))
+        #expect(account.points == 100)
+        #expect(firstGoal.rewardPointsAwarded == true)
+
+        try goalService.updateProgress(for: secondGoal, progress: 1, in: context)
+
+        #expect(account.points == 100)
+        #expect(secondGoal.completedAt != nil)
+        #expect(secondGoal.rewardPointsAwarded == false)
+    }
+
+    @MainActor
+    @Test
+    func dailyTaskPointsCapAtThirtyPerDay() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        _ = try service.awardPoints(for: .dailyTask(rank: .s, title: "任务一"), in: context)
+        _ = try service.awardPoints(for: .dailyTask(rank: .s, title: "任务二"), in: context)
+        _ = try service.awardPoints(for: .dailyTask(rank: .a, title: "任务三"), in: context)
+        let account = try #require(service.fetchRewardAccount(in: context))
+
+        #expect(account.points == 30)
+        #expect(account.dailyTaskPointsAwarded == 30)
+    }
+
+    @MainActor
+    @Test
+    func goalPointsAwardOnlyOncePerDayAcrossAllGoals() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        _ = try service.awardPoints(for: .goal(rank: .a, title: "目标一"), in: context)
+        _ = try service.awardPoints(for: .goal(rank: .s, title: "目标二"), in: context)
+        let account = try #require(service.fetchRewardAccount(in: context))
+
+        #expect(account.points == 100)
+        #expect(account.didAwardGoalPointsToday == true)
+    }
+
+    @MainActor
+    @Test
+    func dailyTaskPointCapStillRecordsZeroDeltaTransaction() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        _ = try service.awardPoints(for: .dailyTask(rank: .s, title: "任务一"), in: context)
+        _ = try service.awardPoints(for: .dailyTask(rank: .s, title: "任务二"), in: context)
+        _ = try service.awardPoints(for: .dailyTask(rank: .a, title: "任务三"), in: context)
+
+        let account = try #require(service.fetchRewardAccount(in: context))
+        #expect(account.points == 30)
+
+        _ = try service.awardPoints(for: .dailyTask(rank: .c, title: "任务四"), in: context)
+
+        let transactions = try service.fetchPointTransactions(in: context)
+        let latest = try #require(transactions.first)
+        #expect(latest.reason == .completeDailyTask)
+        #expect(latest.pointsDelta == 0)
+        #expect(latest.balanceAfterChange == 30)
+        #expect(latest.referenceTitle == "任务四")
+    }
+
+    @MainActor
+    @Test
+    func goalDailyLimitStillRecordsZeroDeltaTransaction() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        _ = try service.awardPoints(for: .goal(rank: .a, title: "目标一"), in: context)
+        _ = try service.awardPoints(for: .goal(rank: .s, title: "目标二"), in: context)
+
+        let transactions = try service.fetchPointTransactions(in: context)
+        let latest = try #require(transactions.first)
+        #expect(latest.reason == .completeGoal)
+        #expect(latest.pointsDelta == 0)
+        #expect(latest.balanceAfterChange == 100)
+        #expect(latest.referenceTitle == "目标二")
     }
 
     @MainActor
@@ -294,7 +523,7 @@ struct TopOneCoreTests {
         viewModel.showCreateRewardDefinition()
         var draft = try #require(viewModel.rewardDraft)
         draft.name = "咖啡券"
-        draft.rank = .b
+        draft.rewardTier = .b
         draft.iconImageData = validRewardImageData()
         draft.availabilityMode = .limited
         draft.remainingCount = 2
@@ -324,7 +553,7 @@ struct TopOneCoreTests {
         viewModel.showEditRewardDefinition(reward)
         var draft = try #require(viewModel.rewardDraft)
         draft.name = "新奖励"
-        draft.rank = .s
+        draft.rewardTier = .s
         draft.detail = "完成阶段冲刺后使用"
         draft.availabilityMode = .limited
         draft.remainingCount = 4
@@ -420,8 +649,9 @@ struct TopOneCoreTests {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
         let service = RewardService()
-        let reward = RewardDefinition(name: "咖啡兑换券", iconImageData: validRewardImageData(), rank: .a)
-        context.insert(reward)
+        for index in 0..<5 {
+            context.insert(RewardDefinition(name: "A奖励\(index)", iconImageData: validRewardImageData(), rank: .a))
+        }
 
         _ = try service.awardPoints(for: .goal(rank: .a, title: "长期目标"), in: context)
         _ = try service.drawReward(for: .a, in: context)
@@ -433,7 +663,7 @@ struct TopOneCoreTests {
         #expect(transactions[0].pointsDelta == -5)
         #expect(transactions[1].reason == .completeGoal)
         #expect(transactions[1].kind == .earn)
-        #expect(transactions[1].pointsDelta == 10)
+        #expect(transactions[1].pointsDelta == 100)
     }
 
     @MainActor
@@ -442,28 +672,188 @@ struct TopOneCoreTests {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
         let service = RewardService()
-        let reward = RewardDefinition(
-            name: "咖啡兑换券",
-            icon: "cup.and.saucer.fill",
-            iconImageData: validRewardImageData(),
-            rank: .a,
-            availabilityMode: .limited,
-            remainingCount: 2
-        )
-        context.insert(reward)
+        for index in 0..<5 {
+            context.insert(RewardDefinition(
+                name: "A奖励\(index)",
+                iconImageData: validRewardImageData(),
+                rank: .a,
+                availabilityMode: .limited,
+                remainingCount: index == 0 ? 2 : 1
+            ))
+        }
         _ = try service.awardPoints(for: .goal(rank: .a, title: "长期目标"), in: context)
 
         let drawnReward = try service.drawReward(for: .a, in: context)
 
-        #expect(drawnReward === reward)
         let account = try #require(service.fetchRewardAccount(in: context))
-        #expect(account.points == 5)
-        #expect(reward.remainingCount == 1)
+        #expect(account.points == 95)
+        #expect(drawnReward.normalRank == .a)
 
         let inventoryItems = try context.fetch(FetchDescriptor<RewardInventoryItem>())
         #expect(inventoryItems.count == 1)
-        #expect(inventoryItems[0].rewardDefinition === reward)
+        #expect(inventoryItems[0].rewardDefinition === drawnReward)
         #expect(inventoryItems[0].currentCount == 1)
+    }
+
+    @MainActor
+    @Test
+    func drawRequiresAtLeastFiveAvailableNormalRewards() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        for index in 0..<4 {
+            context.insert(RewardDefinition(name: "A奖励\(index)", iconImageData: validRewardImageData(), rewardTier: .a))
+        }
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 100
+        try context.save()
+
+        #expect(throws: RewardServiceError.drawPoolTooSmall(rank: .a, minimum: 5, actual: 4)) {
+            try service.drawReward(for: .a, in: context)
+        }
+    }
+
+    @MainActor
+    @Test
+    func availableRewardsExcludesSSSRewardsFromNormalTierPool() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        for index in 0..<4 {
+            context.insert(RewardDefinition(name: "C奖励\(index)", iconImageData: validRewardImageData(), rewardTier: .c))
+        }
+        context.insert(RewardDefinition(name: "SSS大奖", iconImageData: validRewardImageData(), rewardTier: .sss, sssPointCost: 999))
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 100
+        try context.save()
+
+        let rewards = try service.availableRewards(for: .c, in: context)
+        #expect(rewards.count == 4)
+        #expect(rewards.allSatisfy { $0.normalRank == .c && $0.isSSSReward == false })
+        #expect(throws: RewardServiceError.drawPoolTooSmall(rank: .c, minimum: 5, actual: 4)) {
+            try service.drawReward(for: .c, in: context)
+        }
+    }
+
+    @MainActor
+    @Test
+    func everyTenDrawsGrantOneExchangeCreditForThatTier() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+
+        for index in 0..<5 {
+            context.insert(RewardDefinition(name: "A奖励\(index)", iconImageData: validRewardImageData(), rewardTier: .a))
+        }
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 100
+        try context.save()
+
+        for _ in 0..<10 {
+            _ = try service.drawReward(for: .a, in: context)
+        }
+
+        #expect(account.drawCountsByTier[RewardTier.a.rawValue] == 10)
+        #expect(account.exchangeCreditsByTier[RewardTier.a.rawValue] == 1)
+    }
+
+    @MainActor
+    @Test
+    func normalRewardDirectExchangeConsumesPointsAndCredit() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+        let reward = RewardDefinition(name: "咖啡券", iconImageData: validRewardImageData(), rewardTier: .a)
+        context.insert(reward)
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 12
+        account.exchangeCreditsByTier = [RewardTier.a.rawValue: 1]
+        try context.save()
+
+        let item = try service.exchangeNormalRewardDirectly(reward, in: context)
+
+        #expect(item.rewardDefinition === reward)
+        #expect(item.currentCount == 1)
+        #expect(account.points == 7)
+        #expect(account.exchangeCreditsByTier[RewardTier.a.rawValue] == 0)
+    }
+
+    @MainActor
+    @Test
+    func normalRewardDirectExchangeRequiresAvailableCredit() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+        let reward = RewardDefinition(name: "咖啡券", iconImageData: validRewardImageData(), rewardTier: .a)
+        context.insert(reward)
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 12
+        account.exchangeCreditsByTier = [RewardTier.a.rawValue: 0]
+        try context.save()
+
+        #expect(throws: RewardServiceError.noExchangeCredit(rank: .a)) {
+            try service.exchangeNormalRewardDirectly(reward, in: context)
+        }
+    }
+
+    @MainActor
+    @Test
+    func normalRewardDirectExchangeRejectsSSSReward() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+        let reward = RewardDefinition(name: "SSS大奖", iconImageData: validRewardImageData(), rewardTier: .sss, sssPointCost: 999)
+        context.insert(reward)
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 1000
+        account.exchangeCreditsByTier = [RewardTier.c.rawValue: 1]
+        try context.save()
+
+        #expect(throws: RewardServiceError.rewardUnavailable) {
+            try service.exchangeNormalRewardDirectly(reward, in: context)
+        }
+    }
+
+    @MainActor
+    @Test
+    func createSSSRewardRejectsCostBelowMinimum() throws {
+        let container = try makeInMemoryContainer()
+
+        #expect(throws: RewardServiceError.invalidSSSPointCost(minimum: RewardDefinition.minimumSSSPointCost)) {
+            try RewardService().createRewardDefinition(
+                name: "欧洲旅行",
+                iconImageData: validRewardImageData(),
+                rewardTier: .sss,
+                sssPointCost: 500,
+                in: container.mainContext
+            )
+        }
+    }
+
+    @MainActor
+    @Test
+    func sssRewardDirectExchangeConsumesCustomCost() throws {
+        let container = try makeInMemoryContainer()
+        let context = container.mainContext
+        let service = RewardService()
+        let reward = RewardDefinition(
+            name: "欧洲旅行",
+            iconImageData: validRewardImageData(),
+            rewardTier: .sss,
+            sssPointCost: 888
+        )
+        context.insert(reward)
+        let account = try service.ensureRewardAccount(in: context)
+        account.points = 1000
+        try context.save()
+
+        let item = try service.exchangeSSSRewardDirectly(reward, in: context)
+
+        #expect(item.rewardDefinition === reward)
+        #expect(item.currentCount == 1)
+        #expect(account.points == 112)
     }
 
     @MainActor
@@ -472,20 +862,36 @@ struct TopOneCoreTests {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
         let service = RewardService()
-        let firstReward = RewardDefinition(name: "电影夜", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 2)
-        let selectedReward = RewardDefinition(name: "咖啡兑换券", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 3)
-        context.insert(firstReward)
-        context.insert(selectedReward)
+        let rewards = [
+            RewardDefinition(name: "电影夜", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 2),
+            RewardDefinition(name: "咖啡兑换券", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 3),
+            RewardDefinition(name: "散步券", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 1),
+            RewardDefinition(name: "阅读券", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 1),
+            RewardDefinition(name: "电影券", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 1),
+        ]
+        rewards.forEach { context.insert($0) }
+        let firstReward = rewards[0]
+        let selectedReward = rewards[1]
         _ = try service.awardPoints(for: .goal(rank: .a, title: "长期目标"), in: context)
 
         let drawnReward = try service.drawReward(for: .a, in: context)
 
-        #expect(drawnReward === firstReward || drawnReward === selectedReward)
-        let changedCount = (firstReward.remainingCount == 1 ? 1 : 0) + (selectedReward.remainingCount == 2 ? 1 : 0)
+        #expect(rewards.contains { $0 === drawnReward })
+        let changedCount = rewards.filter { reward in
+            switch reward.name {
+            case "电影夜":
+                reward.remainingCount == 1
+            case "咖啡兑换券":
+                reward.remainingCount == 2
+            default:
+                reward.remainingCount == 0
+            }
+        }.count
         #expect(changedCount == 1)
         let inventoryItems = try context.fetch(FetchDescriptor<RewardInventoryItem>())
         #expect(inventoryItems.count == 1)
         #expect(inventoryItems[0].rewardDefinition === drawnReward)
+        #expect(drawnReward === firstReward || drawnReward === selectedReward || rewards.dropFirst(2).contains { $0 === drawnReward })
     }
 
     @MainActor
@@ -548,8 +954,15 @@ struct TopOneCoreTests {
     func homeViewModelDrawRewardConsumesPointsAndAddsInventory() throws {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
-        let reward = RewardDefinition(name: "咖啡兑换券", iconImageData: validRewardImageData(), rank: .a, availabilityMode: .limited, remainingCount: 2)
-        context.insert(reward)
+        for index in 0..<5 {
+            context.insert(RewardDefinition(
+                name: "A奖励\(index)",
+                iconImageData: validRewardImageData(),
+                rank: .a,
+                availabilityMode: .limited,
+                remainingCount: index == 0 ? 2 : 1
+            ))
+        }
         _ = try RewardService().awardPoints(for: .goal(rank: .a, title: "长期目标"), in: context)
 
         let viewModel = HomeViewModel()
@@ -557,7 +970,7 @@ struct TopOneCoreTests {
 
         let account = try #require(RewardService().fetchRewardAccount(in: context))
         let inventoryItems = try context.fetch(FetchDescriptor<RewardInventoryItem>())
-        #expect(account.points == 5)
+        #expect(account.points == 95)
         #expect(inventoryItems.count == 1)
         #expect(inventoryItems[0].currentCount == 1)
         #expect(viewModel.errorMessage == nil)
@@ -578,7 +991,8 @@ struct TopOneCoreTests {
         #expect(draft.detail == "")
         #expect(draft.availabilityMode == .unlimited)
         #expect(draft.remainingCount == 0)
-        #expect(draft.rank == .a)
+        #expect(draft.rewardTier == .a)
+        #expect(draft.sssPointCost == RewardDefinition.minimumSSSPointCost)
     }
 
     @MainActor
@@ -589,7 +1003,8 @@ struct TopOneCoreTests {
             name: "咖啡兑换券",
             icon: "cup.and.saucer.fill",
             iconImageData: validRewardImageData(),
-            rank: .s,
+            rewardTier: .sss,
+            sssPointCost: 999,
             detail: "兑换一杯热拿铁",
             availabilityMode: .limited,
             remainingCount: 3
@@ -602,7 +1017,8 @@ struct TopOneCoreTests {
         #expect(draft.name == "咖啡兑换券")
         #expect(draft.icon == reward.icon)
         #expect(draft.iconImageData == reward.iconImageData)
-        #expect(draft.rank == .s)
+        #expect(draft.rewardTier == .sss)
+        #expect(draft.sssPointCost == 999)
         #expect(draft.detail == "兑换一杯热拿铁")
         #expect(draft.availabilityMode == .limited)
         #expect(draft.remainingCount == 3)
