@@ -21,6 +21,48 @@ private extension Image {
     }
 }
 
+private struct RewardImagePickerLabel: View {
+    let rewardImageData: Data
+
+    var body: some View {
+        HStack(spacing: 14) {
+            if let image = RewardService.decodedImage(from: rewardImageData) {
+                Image(platformImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            } else {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(PrototypeColors.surfaceContainerHigh)
+                    .frame(width: 56, height: 56)
+                    .overlay {
+                        Image(systemName: "photo")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(PrototypeColors.outlineVariant)
+                    }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(rewardImageData.isEmpty ? "选择奖励图片" : "更换奖励图片")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(PrototypeColors.primary)
+                Text("图片为必选项，建议使用清晰、单主体的小图标。")
+                    .font(.footnote)
+                    .foregroundStyle(PrototypeColors.onSurfaceVariant)
+            }
+
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            PrototypeColors.surfaceContainerLowest,
+            in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+        )
+        .overlay(RoundedRectangle(cornerRadius: 22).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
+    }
+}
+
 @MainActor
 struct TopOneRootView: View {
     @Environment(\.modelContext) private var modelContext
@@ -2304,14 +2346,16 @@ struct TopOneRootView: View {
     private func createGoalContent() -> some View {
         VStack(alignment: .leading, spacing: 24) {
             goalIntentCard(
-                title: viewModel.goalDraft?.title ?? "",
+                title: Binding(
+                    get: { viewModel.goalDraft?.title ?? "" },
+                    set: {
+                        guard var current = viewModel.goalDraft else { return }
+                        current.title = $0
+                        viewModel.goalDraft = current
+                    }
+                ),
                 placeholder: "输入任务名称...",
-                helper: "它会先进入暂停任务库，只有被你亲自选择后，才会成为当前 TopOne。",
-                onChange: {
-                    guard var current = viewModel.goalDraft else { return }
-                    current.title = $0
-                    viewModel.goalDraft = current
-                }
+                helper: "它会先进入暂停任务库，只有被你亲自选择后，才会成为当前 TopOne。"
             )
 
             rankSelectionCard(
@@ -2332,14 +2376,16 @@ struct TopOneRootView: View {
     private func createDailyTaskContent() -> some View {
         VStack(alignment: .leading, spacing: 24) {
             goalIntentCard(
-                title: viewModel.dailyTaskDraft?.title ?? "",
+                title: Binding(
+                    get: { viewModel.dailyTaskDraft?.title ?? "" },
+                    set: {
+                        guard var current = viewModel.dailyTaskDraft else { return }
+                        current.title = $0
+                        viewModel.dailyTaskDraft = current
+                    }
+                ),
                 placeholder: "输入任务名称...",
-                helper: "写成一段能真实推进的行动，而不是模糊愿望。",
-                onChange: {
-                    guard var current = viewModel.dailyTaskDraft else { return }
-                    current.title = $0
-                    viewModel.dailyTaskDraft = current
-                }
+                helper: "写成一段能真实推进的行动，而不是模糊愿望。"
             )
 
             VStack(alignment: .leading, spacing: 24) {
@@ -2361,13 +2407,13 @@ struct TopOneRootView: View {
         }
     }
 
-    private func goalIntentCard(title: String, placeholder: String, helper: String, onChange: @escaping (String) -> Void) -> some View {
+    private func goalIntentCard(title: Binding<String>, placeholder: String, helper: String) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("核心目标")
                 .font(.caption.weight(.bold))
                 .tracking(1.1)
                 .foregroundStyle(PrototypeColors.tertiaryFixedDim)
-            TextField(placeholder, text: Binding(get: { title }, set: onChange))
+            TextField(placeholder, text: title)
                 .textFieldStyle(.plain)
                 .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
@@ -2935,41 +2981,7 @@ struct TopOneRootView: View {
                                 .foregroundStyle(PrototypeColors.onSurfaceVariant)
 
                             PhotosPicker(selection: $selectedRewardImageItem, matching: .images, photoLibrary: .shared()) {
-                                HStack(spacing: 14) {
-                                    if let image = RewardService.decodedImage(from: rewardImageData) {
-                                        Image(platformImage: image)
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 56, height: 56)
-                                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                    } else {
-                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                            .fill(PrototypeColors.surfaceContainerHigh)
-                                            .frame(width: 56, height: 56)
-                                            .overlay {
-                                                Image(systemName: "photo")
-                                                    .font(.headline.weight(.bold))
-                                                    .foregroundStyle(PrototypeColors.outlineVariant)
-                                            }
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        Text(rewardImageData.isEmpty ? "选择奖励图片" : "更换奖励图片")
-                                            .font(.headline.weight(.bold))
-                                            .foregroundStyle(PrototypeColors.primary)
-                                        Text("图片为必选项，建议使用清晰、单主体的小图标。")
-                                            .font(.footnote)
-                                            .foregroundStyle(PrototypeColors.onSurfaceVariant)
-                                    }
-
-                                    Spacer()
-                                }
-                                .padding(16)
-                                .background(
-                                    PrototypeColors.surfaceContainerLowest,
-                                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                )
-                                .overlay(RoundedRectangle(cornerRadius: 22).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
+                                RewardImagePickerLabel(rewardImageData: rewardImageData)
                             }
                             .buttonStyle(.plain)
 
