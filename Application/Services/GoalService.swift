@@ -21,7 +21,7 @@ struct GoalService {
     static let inProgressDailyTaskLimit = 2
     static let minimumSwitchReasonLength = 50
     static let maximumSwitchReasonLength = 500
-    static let maximumReasonInputLength = 1_000
+    static let maximumReasonInputLength = 1000
     static let maximumCustomLockDays = 180
 
     @discardableResult
@@ -114,7 +114,7 @@ struct GoalService {
             goal.completedAt = nil
         }
 
-        if goal.isCompleted && !goal.rewardPointsAwarded {
+        if goal.isCompleted, !goal.rewardPointsAwarded {
             let rewardService = RewardService()
             let previousPoints = rewardService.fetchRewardAccount(in: modelContext)?.points ?? 0
             let account = try rewardService.awardPoints(for: .goal(rank: goal.rank, title: goal.title), in: modelContext)
@@ -177,19 +177,19 @@ struct GoalService {
             throw GoalServiceError.topOneRequired
         }
 
-        if status == .inProgress && task.status != .inProgress {
+        if status == .inProgress, task.status != .inProgress {
             guard inProgressDailyTasks(for: task.goal).count < Self.inProgressDailyTaskLimit else {
                 throw GoalServiceError.inProgressDailyTaskLimitReached
             }
             task.startedAt = task.startedAt ?? .now
         }
-        if status == .completed && task.status != .completed {
+        if status == .completed, task.status != .completed {
             task.endedAt = .now
         }
 
         task.status = status
 
-        if task.status == .completed && !task.rewardPointsAwarded {
+        if task.status == .completed, !task.rewardPointsAwarded {
             _ = try RewardService().awardPoints(for: .dailyTask(rank: task.rank, title: task.title), in: modelContext)
             task.rewardPointsAwarded = true
             try modelContext.save()

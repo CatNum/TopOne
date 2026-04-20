@@ -21,7 +21,7 @@ jobs:
         run: xcodegen generate
 
       - name: Format check
-        run: swiftformat --lint App Application Domain Persistence PlatformAdapters Presentation Tests
+        run: swiftformat App Application Domain Persistence PlatformAdapters Presentation Tests --lint
 
       - name: Lint
         run: |

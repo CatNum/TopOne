@@ -11,8 +11,8 @@ final class HomeViewModel: ObservableObject {
 
         init(goal: Goal? = nil) {
             self.goal = goal
-            self.title = goal?.title ?? ""
-            self.rank = goal?.rank ?? .a
+            title = goal?.title ?? ""
+            rank = goal?.rank ?? .a
         }
     }
 
@@ -25,9 +25,9 @@ final class HomeViewModel: ObservableObject {
 
         init(task: DailyTask? = nil, defaultGoal: Goal? = nil) {
             self.task = task
-            self.title = task?.title ?? ""
-            self.rank = task?.rank ?? .a
-            self.goal = task?.goal ?? defaultGoal
+            title = task?.title ?? ""
+            rank = task?.rank ?? .a
+            goal = task?.goal ?? defaultGoal
         }
     }
 
@@ -45,14 +45,14 @@ final class HomeViewModel: ObservableObject {
 
         init(reward: RewardDefinition? = nil) {
             self.reward = reward
-            self.name = reward?.name ?? ""
-            self.icon = reward?.icon ?? ""
-            self.iconImageData = reward?.iconImageData ?? Data()
-            self.rewardTier = reward?.rewardTier ?? .a
-            self.detail = reward?.detail ?? ""
-            self.availabilityMode = reward?.availabilityMode ?? .unlimited
-            self.remainingCount = reward?.remainingCount ?? 0
-            self.sssPointCost = reward?.sssPointCost ?? RewardDefinition.minimumSSSPointCost
+            name = reward?.name ?? ""
+            icon = reward?.icon ?? ""
+            iconImageData = reward?.iconImageData ?? Data()
+            rewardTier = reward?.rewardTier ?? .a
+            detail = reward?.detail ?? ""
+            availabilityMode = reward?.availabilityMode ?? .unlimited
+            remainingCount = reward?.remainingCount ?? 0
+            sssPointCost = reward?.sssPointCost ?? RewardDefinition.minimumSSSPointCost
         }
     }
 
@@ -301,7 +301,8 @@ final class HomeViewModel: ObservableObject {
     func setTopOne(_ goal: Goal, lockDuration: LockDuration, in modelContext: ModelContext) {
         do {
             if case let .custom(days) = lockDuration,
-               !(1...GoalService.maximumCustomLockDays).contains(days) {
+               !(1 ... GoalService.maximumCustomLockDays).contains(days)
+            {
                 throw GoalServiceError.invalidCustomLockDuration
             }
             try service.setTopOne(goal, lockDuration: lockDuration, in: modelContext)
@@ -371,7 +372,7 @@ final class HomeViewModel: ObservableObject {
         case 7: return .sevenDays
         case 14: return .fourteenDays
         case 30: return .thirtyDays
-        case 1...GoalService.maximumCustomLockDays: return .custom(days: days)
+        case 1 ... GoalService.maximumCustomLockDays: return .custom(days: days)
         default: return nil
         }
     }

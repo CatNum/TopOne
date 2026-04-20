@@ -2,10 +2,12 @@ import Foundation
 import SwiftData
 
 enum RewardAvailabilityMode: String, CaseIterable, Identifiable, Codable {
-    case unlimited = "unlimited"
-    case limited = "limited"
+    case unlimited
+    case limited
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }
 
 enum RewardTier: String, CaseIterable, Identifiable, Codable {
@@ -17,7 +19,9 @@ enum RewardTier: String, CaseIterable, Identifiable, Codable {
     case c = "C"
     // swiftlint:enable identifier_name
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var normalRank: TaskRank? {
         switch self {
@@ -103,10 +107,10 @@ final class RewardDefinition {
         self.name = RewardDefinition.normalizedName(from: name)
         self.icon = RewardDefinition.normalizedIcon(from: icon)
         self.iconImageData = iconImageData
-        self.rankRawValue = rank.rawValue
-        self.sssPointCost = Self.minimumSSSPointCost
+        rankRawValue = rank.rawValue
+        sssPointCost = Self.minimumSSSPointCost
         self.detail = RewardDefinition.normalizedDetail(from: detail)
-        self.availabilityModeRawValue = availabilityMode.rawValue
+        availabilityModeRawValue = availabilityMode.rawValue
         self.remainingCount = max(0, remainingCount)
         self.inventoryItems = inventoryItems
     }
@@ -125,10 +129,10 @@ final class RewardDefinition {
         self.name = RewardDefinition.normalizedName(from: name)
         self.icon = RewardDefinition.normalizedIcon(from: icon)
         self.iconImageData = iconImageData
-        self.rankRawValue = rewardTier.rawValue
+        rankRawValue = rewardTier.rawValue
         self.sssPointCost = rewardTier == .sss ? max(Self.minimumSSSPointCost, sssPointCost) : Self.minimumSSSPointCost
         self.detail = RewardDefinition.normalizedDetail(from: detail)
-        self.availabilityModeRawValue = availabilityMode.rawValue
+        availabilityModeRawValue = availabilityMode.rawValue
         self.remainingCount = max(0, remainingCount)
         self.inventoryItems = inventoryItems
     }

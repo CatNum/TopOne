@@ -1,9 +1,11 @@
 #if canImport(AppKit)
-import AppKit
-private typealias PlatformImage = NSImage
+    import AppKit
+
+    private typealias PlatformImage = NSImage
 #elseif canImport(UIKit)
-import UIKit
-private typealias PlatformImage = UIImage
+    import UIKit
+
+    private typealias PlatformImage = UIImage
 #endif
 import PhotosUI
 import SwiftData
@@ -12,9 +14,9 @@ import SwiftUI
 private extension Image {
     init(platformImage: PlatformImage) {
         #if canImport(AppKit)
-        self.init(nsImage: platformImage)
+            self.init(nsImage: platformImage)
         #elseif canImport(UIKit)
-        self.init(uiImage: platformImage)
+            self.init(uiImage: platformImage)
         #endif
     }
 }
@@ -184,13 +186,16 @@ struct TopOneRootView: View {
             },
             set: { newValue in
                 if newValue == nil,
-                   case .deleteGoal = viewModel.pendingAction {
+                   case .deleteGoal = viewModel.pendingAction
+                {
                     viewModel.pendingAction = nil
                 } else if newValue == nil,
-                          case .deleteTask = viewModel.pendingAction {
+                          case .deleteTask = viewModel.pendingAction
+                {
                     viewModel.pendingAction = nil
                 } else if newValue == nil,
-                          case .deleteReward = viewModel.pendingAction {
+                          case .deleteReward = viewModel.pendingAction
+                {
                     viewModel.pendingAction = nil
                 }
             }
@@ -372,7 +377,7 @@ struct TopOneRootView: View {
                     highlights: [
                         "日常任务积分每天最多累计 30 分，超过后继续完成任务会记录 +0。",
                         "长期任务积分每天只发放 1 次，之后当天再完成长期任务会记录 +0。",
-                        "这些限制只影响积分发放，不影响任务本身的完成状态。"
+                        "这些限制只影响积分发放，不影响任务本身的完成状态。",
                     ]
                 )
                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -453,7 +458,7 @@ struct TopOneRootView: View {
                                 get: { currentTopOne.progress },
                                 set: { updateGoalProgress(currentTopOne, value: $0) }
                             ),
-                            in: 0...1
+                            in: 0 ... 1
                         )
                         .tint(PrototypeColors.tertiaryFixedDim)
                     }
@@ -750,8 +755,6 @@ struct TopOneRootView: View {
         }
     }
 
-
-    @ViewBuilder
     private var rewardPoolSection: some View {
         VStack(alignment: .leading, spacing: 20) {
             rewardPointsCard
@@ -764,7 +767,7 @@ struct TopOneRootView: View {
                     highlights: [
                         "普通等级 S / A / B / C 按当前等级池抽卡，结果会随机落到该池里的一个可用奖励。",
                         "每满 10 抽，会累积 1 次当前等级的直兑次数，可直接领取该等级奖励。",
-                        "SSS 不参与抽卡，只展示大奖励列表，满足条件后直接领取。"
+                        "SSS 不参与抽卡，只展示大奖励列表，满足条件后直接领取。",
                     ]
                 )
                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -792,7 +795,6 @@ struct TopOneRootView: View {
             }
         }
     }
-
 
     private func placeholderPage(eyebrow: String, title: String, message: String) -> some View {
         VStack(alignment: .leading, spacing: 22) {
@@ -867,7 +869,7 @@ struct TopOneRootView: View {
             .padding(18)
             .background(taskRowBackground(task), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(alignment: .trailing) {
-                if allowsStatusUpdate && !isSwiped {
+                if allowsStatusUpdate, !isSwiped {
                     Text("左滑以开始 / 编辑 / 删除")
                         .font(.system(size: 9, weight: .bold))
                         .tracking(0.4)
@@ -1245,7 +1247,7 @@ struct TopOneRootView: View {
                 let unitWidth = CGFloat(items.count) * iconSize + CGFloat(max(items.count - 1, 0)) * spacing
                 let minimumLoopWidth = max(unitWidth, proxy.size.width + iconSize)
                 let repeatCount = max(2, Int(ceil(minimumLoopWidth / max(unitWidth, 1))) + 1)
-                let loopItems = Array((0..<repeatCount).flatMap { _ in items })
+                let loopItems = Array((0 ..< repeatCount).flatMap { _ in items })
                 let offset = CGFloat((base * speed).truncatingRemainder(dividingBy: max(unitWidth, 1)))
 
                 HStack(spacing: spacing) {
@@ -1449,7 +1451,7 @@ struct TopOneRootView: View {
                                 highlights: [
                                     "完成日常任务：S 12 / A 8 / B 5 / C 3；但日常积分每天最多累计 30 分。",
                                     "完成长期任务：S 200 / A 100 / B 60 / C 40；但长期任务积分每天只发放 1 次。",
-                                    "抽卡消耗：S 12 / A 5 / B 3 / C 2；普通奖励与 SSS 领取也会在满足条件时扣除对应积分。"
+                                    "抽卡消耗：S 12 / A 5 / B 3 / C 2；普通奖励与 SSS 领取也会在满足条件时扣除对应积分。",
                                 ]
                             )
                             .transition(.move(edge: .top).combined(with: .opacity))
@@ -1621,7 +1623,7 @@ struct TopOneRootView: View {
 
         let start = offsetSeed % rewards.count
         let rotated = Array(rewards[start...]) + Array(rewards[..<start])
-        return Array((0..<4).flatMap { _ in rotated })
+        return Array((0 ..< 4).flatMap { _ in rotated })
     }
 
     private var sssRewardListSection: some View {
@@ -1792,9 +1794,9 @@ struct TopOneRootView: View {
     private func rewardAvailabilityText(_ reward: RewardDefinition) -> String {
         switch reward.availabilityMode {
         case .unlimited:
-            return "无限供应"
+            "无限供应"
         case .limited:
-            return "剩余 \(reward.remainingCount) 份"
+            "剩余 \(reward.remainingCount) 份"
         }
     }
 
@@ -1899,15 +1901,15 @@ struct TopOneRootView: View {
                         ? "+\(transaction.pointsDelta)"
                         : transaction.pointsDelta < 0 ? "\(transaction.pointsDelta)" : "±0"
                 )
-                    .font(.headline.weight(.heavy))
-                    .foregroundStyle(
-                        transaction.pointsDelta > 0
-                            ? PrototypeColors.primary
-                            : transaction.pointsDelta < 0
-                            ? PrototypeColors.error
-                            : PrototypeColors.onSurfaceVariant
-                    )
-                    .monospacedDigit()
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(
+                    transaction.pointsDelta > 0
+                        ? PrototypeColors.primary
+                        : transaction.pointsDelta < 0
+                        ? PrototypeColors.error
+                        : PrototypeColors.onSurfaceVariant
+                )
+                .monospacedDigit()
                 Text("余额 \(transaction.balanceAfterChange)")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(PrototypeColors.onSurfaceVariant)
@@ -1922,13 +1924,13 @@ struct TopOneRootView: View {
     private func rewardPointTransactionTitle(_ transaction: RewardPointTransaction) -> String {
         switch transaction.reason {
         case .completeDailyTask:
-            return transaction.pointsDelta == 0 ? "完成日常任务 · 本次未加分" : "完成日常任务"
+            transaction.pointsDelta == 0 ? "完成日常任务 · 本次未加分" : "完成日常任务"
         case .completeGoal:
-            return transaction.pointsDelta == 0 ? "完成长期任务 · 本次未加分" : "完成长期任务"
+            transaction.pointsDelta == 0 ? "完成长期任务 · 本次未加分" : "完成长期任务"
         case .drawReward:
-            return "抽取 Rank \(transaction.rank.rawValue) 奖励"
+            "抽取 Rank \(transaction.rank.rawValue) 奖励"
         case .exchangeReward:
-            return "直兑 Rank \(transaction.rank.rawValue) 奖励"
+            "直兑 Rank \(transaction.rank.rawValue) 奖励"
         }
     }
 
@@ -1970,16 +1972,15 @@ struct TopOneRootView: View {
     }
 
     private func rewardDrawButtonLabel(for rank: TaskRank) -> String {
-        let cost: Int
-        switch rank {
+        let cost = switch rank {
         case .s:
-            cost = 12
+            12
         case .a:
-            cost = 5
+            5
         case .b:
-            cost = 3
+            3
         case .c:
-            cost = 2
+            2
         }
         if currentRankAvailableRewards.count < 5 {
             return "当前等级未满 5 个奖励，暂不可抽取"
@@ -2904,7 +2905,7 @@ struct TopOneRootView: View {
                                     highlights: [
                                         "S / A / B / C 属于普通奖励池，可参与对应等级的抽卡，也可在累计到直兑次数后直接领取。",
                                         "SSS 不参与抽卡，只能在大奖励列表中按设定积分直接领取。",
-                                        "SSS 级旨在锚定更长远的目标，让那些郑重的自我犒赏，在时间的沉淀后顺理成章地到来。"
+                                        "SSS 级旨在锚定更长远的目标，让那些郑重的自我犒赏，在时间的沉淀后顺理成章地到来。",
                                     ]
                                 )
                                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -3018,7 +3019,7 @@ struct TopOneRootView: View {
                                         current.remainingCount = max($0, 1)
                                         viewModel.rewardDraft = current
                                     }
-                                ), in: 1...99) {
+                                ), in: 1 ... 99) {
                                     Text("剩余 \(max(viewModel.rewardDraft?.remainingCount ?? draft.remainingCount, 1)) 份")
                                         .font(.subheadline.weight(.medium))
                                         .foregroundStyle(PrototypeColors.primary)
@@ -3246,7 +3247,7 @@ struct TopOneRootView: View {
                                 highlights: [
                                     "7 / 14 / 30 天适合不同强度的专注实验。",
                                     "自定义天数适用于更长期的专注承诺。",
-                                    "中途放弃会进入放弃流程，并提高下次切换门槛。"
+                                    "中途放弃会进入放弃流程，并提高下次切换门槛。",
                                 ]
                             )
                             .transition(.move(edge: .top).combined(with: .opacity))
@@ -3422,7 +3423,7 @@ struct TopOneRootView: View {
                                         "写下理由的过程，是一次面向内心的复盘，帮助你分辨冲动与真正的需要。",
                                         "只有当理由足够具体、足够清晰时，才更能说明这次更换是经过认真思考的决定。",
                                         "如果只是短暂疲惫、焦虑或分心，这段文字也会提醒你先停下来，再判断是否真的需要放弃。",
-                                        "字数规则会随结果动态变化：如果放弃，则下次字数 = 当前字数 × 2；如果完成一个长期任务，则下次字数 = 当前字数 ÷ 2。最小值为 50，最大值为 500。"
+                                        "字数规则会随结果动态变化：如果放弃，则下次字数 = 当前字数 × 2；如果完成一个长期任务，则下次字数 = 当前字数 ÷ 2。最小值为 50，最大值为 500。",
                                     ]
                                 )
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -3650,7 +3651,8 @@ struct TopOneRootView: View {
                             }
 
                             if case let .dailyTask(task, _) = celebration,
-                               let relatedGoal = task.goal {
+                               let relatedGoal = task.goal
+                            {
                                 Button {
                                     self.celebration = nil
                                     viewModel.prepareProgressEditor(for: relatedGoal)
@@ -3833,7 +3835,9 @@ private enum RootPage: CaseIterable, Identifiable {
     case rewards
     case settings
 
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {
@@ -3882,7 +3886,9 @@ private enum CreateTaskType: CaseIterable, Identifiable {
     case daily
     case goal
 
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {

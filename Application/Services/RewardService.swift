@@ -1,10 +1,12 @@
 import Foundation
 #if canImport(AppKit)
-import AppKit
-typealias RewardPlatformImage = NSImage
+    import AppKit
+
+    typealias RewardPlatformImage = NSImage
 #elseif canImport(UIKit)
-import UIKit
-typealias RewardPlatformImage = UIImage
+    import UIKit
+
+    typealias RewardPlatformImage = UIImage
 #endif
 import ImageIO
 import SwiftData
@@ -107,7 +109,7 @@ struct RewardService {
         guard availabilityMode == .unlimited || remainingCount > 0 else {
             throw RewardServiceError.invalidLimitedRewardCount
         }
-        if rewardTier == .sss && sssPointCost < RewardDefinition.minimumSSSPointCost {
+        if rewardTier == .sss, sssPointCost < RewardDefinition.minimumSSSPointCost {
             throw RewardServiceError.invalidSSSPointCost(minimum: RewardDefinition.minimumSSSPointCost)
         }
 

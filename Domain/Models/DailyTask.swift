@@ -7,7 +7,9 @@ enum TaskRank: String, CaseIterable, Identifiable, Codable {
     case b = "B"
     case c = "C"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }
 
 enum DailyTaskStatus: String, CaseIterable, Identifiable, Codable {
@@ -15,7 +17,9 @@ enum DailyTaskStatus: String, CaseIterable, Identifiable, Codable {
     case inProgress = "执行中"
     case completed = "已完成"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var sortOrder: Int {
         switch self {
@@ -64,8 +68,8 @@ final class DailyTask {
         goal: Goal? = nil
     ) {
         self.title = DailyTask.normalizedTitle(from: title)
-        self.rankRawValue = rank.rawValue
-        self.statusRawValue = status.rawValue
+        rankRawValue = rank.rawValue
+        statusRawValue = status.rawValue
         self.createdAt = createdAt
         self.startedAt = startedAt
         self.endedAt = endedAt

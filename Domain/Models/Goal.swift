@@ -41,7 +41,7 @@ final class Goal {
         dailyTasks: [DailyTask] = []
     ) {
         self.title = Goal.normalizedTitle(from: title)
-        self.rankRawValue = rank.rawValue
+        rankRawValue = rank.rawValue
         self.isTopOne = isTopOne
         self.progress = Goal.clampedProgress(progress)
         self.createdAt = createdAt
@@ -75,12 +75,12 @@ final class Goal {
             return "已可切换"
         }
 
-        let days = remainingSeconds / 86_400
+        let days = remainingSeconds / 86400
         if days > 0 {
             return "剩余 \(days) 天"
         }
 
-        let hours = max(1, remainingSeconds / 3_600)
+        let hours = max(1, remainingSeconds / 3600)
         return "剩余 \(hours) 小时"
     }
 }

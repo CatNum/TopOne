@@ -49,9 +49,9 @@ final class RewardPointTransaction {
     ) {
         self.pointsDelta = pointsDelta
         self.balanceAfterChange = max(0, balanceAfterChange)
-        self.kindRawValue = kind.rawValue
-        self.reasonRawValue = reason.rawValue
-        self.rankRawValue = rank.rawValue
+        kindRawValue = kind.rawValue
+        reasonRawValue = reason.rawValue
+        rankRawValue = rank.rawValue
         self.referenceTitle = referenceTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         self.createdAt = createdAt
     }

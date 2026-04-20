@@ -88,7 +88,7 @@ struct TopOneCoreTests {
 
     @MainActor
     @Test
-    func requiredReasonLengthCapsAtFiveHundred() throws {
+    func requiredReasonLengthCapsAtFiveHundred() {
         let service = GoalService()
         let goal = Goal(title: "长期挑战", rank: .a, earlySwitchCount: 5)
 
@@ -226,7 +226,7 @@ struct TopOneCoreTests {
 
     @MainActor
     @Test
-    func rewardDefinitionSupportsSSSTierAndCustomCost() throws {
+    func rewardDefinitionSupportsSSSTierAndCustomCost() {
         let definition = RewardDefinition(
             name: "豪华放空日",
             iconImageData: validRewardImageData(),
@@ -244,7 +244,7 @@ struct TopOneCoreTests {
 
     @MainActor
     @Test
-    func rewardDefinitionClampsSSSPointCostToMinimum() throws {
+    func rewardDefinitionClampsSSSPointCostToMinimum() {
         let definition = RewardDefinition(
             name: "豪华放空日",
             iconImageData: validRewardImageData(),
@@ -282,7 +282,7 @@ struct TopOneCoreTests {
 
     @MainActor
     @Test
-    func rewardDefinitionKeepsTaskRankForNormalRewards() throws {
+    func rewardDefinitionKeepsTaskRankForNormalRewards() {
         let definition = RewardDefinition(
             name: "咖啡时光",
             iconImageData: validRewardImageData(),
@@ -649,7 +649,7 @@ struct TopOneCoreTests {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
         let service = RewardService()
-        for index in 0..<5 {
+        for index in 0 ..< 5 {
             context.insert(RewardDefinition(name: "A奖励\(index)", iconImageData: validRewardImageData(), rank: .a))
         }
 
@@ -672,7 +672,7 @@ struct TopOneCoreTests {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
         let service = RewardService()
-        for index in 0..<5 {
+        for index in 0 ..< 5 {
             context.insert(RewardDefinition(
                 name: "A奖励\(index)",
                 iconImageData: validRewardImageData(),
@@ -702,7 +702,7 @@ struct TopOneCoreTests {
         let context = container.mainContext
         let service = RewardService()
 
-        for index in 0..<4 {
+        for index in 0 ..< 4 {
             context.insert(RewardDefinition(name: "A奖励\(index)", iconImageData: validRewardImageData(), rewardTier: .a))
         }
         let account = try service.ensureRewardAccount(in: context)
@@ -721,7 +721,7 @@ struct TopOneCoreTests {
         let context = container.mainContext
         let service = RewardService()
 
-        for index in 0..<4 {
+        for index in 0 ..< 4 {
             context.insert(RewardDefinition(name: "C奖励\(index)", iconImageData: validRewardImageData(), rewardTier: .c))
         }
         context.insert(RewardDefinition(name: "SSS大奖", iconImageData: validRewardImageData(), rewardTier: .sss, sssPointCost: 999))
@@ -744,14 +744,14 @@ struct TopOneCoreTests {
         let context = container.mainContext
         let service = RewardService()
 
-        for index in 0..<5 {
+        for index in 0 ..< 5 {
             context.insert(RewardDefinition(name: "A奖励\(index)", iconImageData: validRewardImageData(), rewardTier: .a))
         }
         let account = try service.ensureRewardAccount(in: context)
         account.points = 100
         try context.save()
 
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             _ = try service.drawReward(for: .a, in: context)
         }
 
@@ -954,7 +954,7 @@ struct TopOneCoreTests {
     func homeViewModelDrawRewardConsumesPointsAndAddsInventory() throws {
         let container = try makeInMemoryContainer()
         let context = container.mainContext
-        for index in 0..<5 {
+        for index in 0 ..< 5 {
             context.insert(RewardDefinition(
                 name: "A奖励\(index)",
                 iconImageData: validRewardImageData(),

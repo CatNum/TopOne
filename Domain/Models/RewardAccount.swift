@@ -59,10 +59,10 @@ final class RewardAccount {
     ) {
         self.points = max(0, points)
         self.lastPointResetAt = lastPointResetAt
-        self.dailyTaskPointsAwardedRawValue = max(0, dailyTaskPointsAwarded)
-        self.didAwardGoalPointsTodayRawValue = didAwardGoalPointsToday
-        self.drawCountsByTierRawValue = Self.encodePersistedDictionary(drawCountsByTier)
-        self.exchangeCreditsByTierRawValue = Self.encodePersistedDictionary(exchangeCreditsByTier)
+        dailyTaskPointsAwardedRawValue = max(0, dailyTaskPointsAwarded)
+        didAwardGoalPointsTodayRawValue = didAwardGoalPointsToday
+        drawCountsByTierRawValue = Self.encodePersistedDictionary(drawCountsByTier)
+        exchangeCreditsByTierRawValue = Self.encodePersistedDictionary(exchangeCreditsByTier)
     }
 
     private func decodePersistedDictionary(from data: Data?) -> [String: Int] {
@@ -75,7 +75,8 @@ final class RewardAccount {
 
     private static func decodePersistedDictionary(from data: Data?) -> [String: Int] {
         guard let data,
-              let dictionary = try? JSONDecoder().decode([String: Int].self, from: data) else {
+              let dictionary = try? JSONDecoder().decode([String: Int].self, from: data)
+        else {
             return [:]
         }
         return dictionary
