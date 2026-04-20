@@ -9,11 +9,13 @@ enum RewardAvailabilityMode: String, CaseIterable, Identifiable, Codable {
 }
 
 enum RewardTier: String, CaseIterable, Identifiable, Codable {
+    // swiftlint:disable identifier_name
     case sss = "SSS"
     case s = "S"
     case a = "A"
     case b = "B"
     case c = "C"
+    // swiftlint:enable identifier_name
 
     var id: String { rawValue }
 

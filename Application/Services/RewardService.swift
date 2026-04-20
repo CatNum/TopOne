@@ -63,7 +63,16 @@ struct RewardService {
     private let exchangeCreditDrawInterval = 10
 
     @discardableResult
-    func createRewardDefinition(name: String, icon: String = "", iconImageData: Data, rank: TaskRank, detail: String = "", availabilityMode: RewardAvailabilityMode = .unlimited, remainingCount: Int = 0, in modelContext: ModelContext) throws -> RewardDefinition {
+    func createRewardDefinition(
+        name: String,
+        icon: String = "",
+        iconImageData: Data,
+        rank: TaskRank,
+        detail: String = "",
+        availabilityMode: RewardAvailabilityMode = .unlimited,
+        remainingCount: Int = 0,
+        in modelContext: ModelContext
+    ) throws -> RewardDefinition {
         try createRewardDefinition(
             name: name,
             icon: icon,
@@ -78,7 +87,17 @@ struct RewardService {
     }
 
     @discardableResult
-    func createRewardDefinition(name: String, icon: String = "", iconImageData: Data, rewardTier: RewardTier, sssPointCost: Int = RewardDefinition.minimumSSSPointCost, detail: String = "", availabilityMode: RewardAvailabilityMode = .unlimited, remainingCount: Int = 0, in modelContext: ModelContext) throws -> RewardDefinition {
+    func createRewardDefinition(
+        name: String,
+        icon: String = "",
+        iconImageData: Data,
+        rewardTier: RewardTier,
+        sssPointCost: Int = RewardDefinition.minimumSSSPointCost,
+        detail: String = "",
+        availabilityMode: RewardAvailabilityMode = .unlimited,
+        remainingCount: Int = 0,
+        in modelContext: ModelContext
+    ) throws -> RewardDefinition {
         guard Self.isValidRewardName(name) else {
             throw RewardServiceError.invalidRewardName
         }
@@ -123,7 +142,18 @@ struct RewardService {
         )
     }
 
-    func updateRewardDefinition(_ reward: RewardDefinition, name: String, icon: String = "", iconImageData: Data, rewardTier: RewardTier, sssPointCost: Int = RewardDefinition.minimumSSSPointCost, detail: String = "", availabilityMode: RewardAvailabilityMode = .unlimited, remainingCount: Int = 0, in modelContext: ModelContext) throws {
+    func updateRewardDefinition(
+        _ reward: RewardDefinition,
+        name: String,
+        icon: String = "",
+        iconImageData: Data,
+        rewardTier: RewardTier,
+        sssPointCost: Int = RewardDefinition.minimumSSSPointCost,
+        detail: String = "",
+        availabilityMode: RewardAvailabilityMode = .unlimited,
+        remainingCount: Int = 0,
+        in modelContext: ModelContext
+    ) throws {
         guard Self.isValidRewardName(name) else {
             throw RewardServiceError.invalidRewardName
         }
@@ -141,7 +171,9 @@ struct RewardService {
         reward.icon = RewardDefinition.normalizedIcon(from: icon)
         reward.iconImageData = Self.optimizedImageData(from: iconImageData)
         reward.rewardTier = rewardTier
-        reward.sssPointCost = rewardTier == .sss ? max(sssPointCost, RewardDefinition.minimumSSSPointCost) : RewardDefinition.minimumSSSPointCost
+        reward.sssPointCost = rewardTier == .sss
+            ? max(sssPointCost, RewardDefinition.minimumSSSPointCost)
+            : RewardDefinition.minimumSSSPointCost
         reward.detail = RewardDefinition.normalizedDetail(from: detail)
         reward.availabilityMode = availabilityMode
         reward.remainingCount = availabilityMode == .limited ? max(0, remainingCount) : 0

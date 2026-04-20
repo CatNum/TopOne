@@ -24,7 +24,10 @@ jobs:
         run: swiftformat --lint App Application Domain Persistence PlatformAdapters Presentation Tests
 
       - name: Lint
-        run: ./scripts/lint.sh
+        run: |
+          echo "== SwiftLint: Raw scan + changed-line gate =="
+          echo "The script prints full SwiftLint findings first, then gate result for changed lines."
+          ./scripts/lint.sh
 
       - name: Build
         run: ./scripts/build.sh

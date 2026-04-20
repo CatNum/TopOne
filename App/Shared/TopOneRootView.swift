@@ -1155,7 +1155,10 @@ struct TopOneRootView: View {
                                 }
                             }
                         } else {
-                            let rewards = rewardDefinitions.filter { $0.rewardTier == selectedExchangeTier && ($0.availabilityMode == .unlimited || $0.remainingCount > 0) }
+                            let rewards = rewardDefinitions.filter {
+                                $0.rewardTier == selectedExchangeTier
+                                    && ($0.availabilityMode == .unlimited || $0.remainingCount > 0)
+                            }
                             if rewards.isEmpty {
                                 rewardEmptyStateCard(
                                     title: "当前没有可直兑奖励",
@@ -1220,8 +1223,15 @@ struct TopOneRootView: View {
             .overlay(RoundedRectangle(cornerRadius: 24).stroke(PrototypeColors.outlineVariant.opacity(0.12)))
         }
         .buttonStyle(.plain)
-        .disabled((rewardAccounts.first?.exchangeCreditsByTier[tier.rawValue] ?? 0) == 0 || rewardPoints < RewardService().drawCost(for: tier.normalRank ?? .a))
-        .opacity((rewardAccounts.first?.exchangeCreditsByTier[tier.rawValue] ?? 0) == 0 || rewardPoints < RewardService().drawCost(for: tier.normalRank ?? .a) ? 0.56 : 1)
+        .disabled(
+            (rewardAccounts.first?.exchangeCreditsByTier[tier.rawValue] ?? 0) == 0
+                || rewardPoints < RewardService().drawCost(for: tier.normalRank ?? .a)
+        )
+        .opacity(
+            (rewardAccounts.first?.exchangeCreditsByTier[tier.rawValue] ?? 0) == 0
+                || rewardPoints < RewardService().drawCost(for: tier.normalRank ?? .a)
+                ? 0.56 : 1
+        )
     }
 
     private func rewardIconCarouselRow(offsetSeed: Int) -> some View {
@@ -1849,11 +1859,23 @@ struct TopOneRootView: View {
         HStack(alignment: .top, spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(transaction.pointsDelta > 0 ? PrototypeColors.primaryFixed : transaction.pointsDelta < 0 ? PrototypeColors.errorContainer : PrototypeColors.surfaceContainerHigh)
+                    .fill(
+                        transaction.pointsDelta > 0
+                            ? PrototypeColors.primaryFixed
+                            : transaction.pointsDelta < 0
+                            ? PrototypeColors.errorContainer
+                            : PrototypeColors.surfaceContainerHigh
+                    )
                     .frame(width: 42, height: 42)
                 Image(systemName: transaction.pointsDelta > 0 ? "plus" : transaction.pointsDelta < 0 ? "minus" : "equal")
                     .font(.system(size: 16, weight: .black))
-                    .foregroundStyle(transaction.pointsDelta > 0 ? PrototypeColors.primary : transaction.pointsDelta < 0 ? PrototypeColors.error : PrototypeColors.onSurfaceVariant)
+                    .foregroundStyle(
+                        transaction.pointsDelta > 0
+                            ? PrototypeColors.primary
+                            : transaction.pointsDelta < 0
+                            ? PrototypeColors.error
+                            : PrototypeColors.onSurfaceVariant
+                    )
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -1872,9 +1894,19 @@ struct TopOneRootView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 6) {
-                Text(transaction.pointsDelta > 0 ? "+\(transaction.pointsDelta)" : transaction.pointsDelta < 0 ? "\(transaction.pointsDelta)" : "±0")
+                Text(
+                    transaction.pointsDelta > 0
+                        ? "+\(transaction.pointsDelta)"
+                        : transaction.pointsDelta < 0 ? "\(transaction.pointsDelta)" : "±0"
+                )
                     .font(.headline.weight(.heavy))
-                    .foregroundStyle(transaction.pointsDelta > 0 ? PrototypeColors.primary : transaction.pointsDelta < 0 ? PrototypeColors.error : PrototypeColors.onSurfaceVariant)
+                    .foregroundStyle(
+                        transaction.pointsDelta > 0
+                            ? PrototypeColors.primary
+                            : transaction.pointsDelta < 0
+                            ? PrototypeColors.error
+                            : PrototypeColors.onSurfaceVariant
+                    )
                     .monospacedDigit()
                 Text("余额 \(transaction.balanceAfterChange)")
                     .font(.caption.weight(.medium))
@@ -2376,8 +2408,21 @@ struct TopOneRootView: View {
                             .font(.title3.weight(.heavy))
                             .foregroundStyle(rank.wrappedValue == item ? .white : PrototypeColors.primary)
                             .frame(width: 50, height: 50)
-                            .background(rank.wrappedValue == item ? PrototypeColors.primary : PrototypeColors.surfaceContainerHigh, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 15).stroke(rank.wrappedValue == item ? PrototypeColors.tertiary.opacity(0.22) : .clear, lineWidth: 4))
+                            .background(
+                                rank.wrappedValue == item
+                                    ? PrototypeColors.primary
+                                    : PrototypeColors.surfaceContainerHigh,
+                                in: RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(
+                                        rank.wrappedValue == item
+                                            ? PrototypeColors.tertiary.opacity(0.22)
+                                            : .clear,
+                                        lineWidth: 4
+                                    )
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -2392,7 +2437,12 @@ struct TopOneRootView: View {
         .overlay(RoundedRectangle(cornerRadius: 26).stroke(PrototypeColors.outlineVariant.opacity(0.18)))
     }
 
-    private func rewardTierSelectionCard(title: String, rewardTier: Binding<RewardTier>, availableTiers: [RewardTier] = RewardTier.allCases, note _: String) -> some View {
+    private func rewardTierSelectionCard(
+        title: String,
+        rewardTier: Binding<RewardTier>,
+        availableTiers: [RewardTier] = RewardTier.allCases,
+        note _: String
+    ) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title)
                 .font(.caption.weight(.bold))
@@ -2407,8 +2457,21 @@ struct TopOneRootView: View {
                             .font(.title3.weight(.heavy))
                             .foregroundStyle(rewardTier.wrappedValue == item ? .white : PrototypeColors.primary)
                             .frame(width: 50, height: 50)
-                            .background(rewardTier.wrappedValue == item ? PrototypeColors.primary : PrototypeColors.surfaceContainerHigh, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 15).stroke(rewardTier.wrappedValue == item ? PrototypeColors.tertiary.opacity(0.22) : .clear, lineWidth: 4))
+                            .background(
+                                rewardTier.wrappedValue == item
+                                    ? PrototypeColors.primary
+                                    : PrototypeColors.surfaceContainerHigh,
+                                in: RoundedRectangle(cornerRadius: 15, style: .continuous)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(
+                                        rewardTier.wrappedValue == item
+                                            ? PrototypeColors.tertiary.opacity(0.22)
+                                            : .clear,
+                                        lineWidth: 4
+                                    )
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -2620,7 +2683,11 @@ struct TopOneRootView: View {
                         .padding(24)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
-                            LinearGradient(colors: [PrototypeColors.primary, PrototypeColors.primaryContainer], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            LinearGradient(
+                                colors: [PrototypeColors.primary, PrototypeColors.primaryContainer],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
                             in: RoundedRectangle(cornerRadius: 30, style: .continuous)
                         )
                         .overlay(alignment: .leading) {
@@ -2897,7 +2964,10 @@ struct TopOneRootView: View {
                                     Spacer()
                                 }
                                 .padding(16)
-                                .background(PrototypeColors.surfaceContainerLowest, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                .background(
+                                    PrototypeColors.surfaceContainerLowest,
+                                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                )
                                 .overlay(RoundedRectangle(cornerRadius: 22).stroke(PrototypeColors.outlineVariant.opacity(0.08)))
                             }
                             .buttonStyle(.plain)
@@ -2964,7 +3034,12 @@ struct TopOneRootView: View {
                                     TextField(
                                         "请输入兑换积分",
                                         value: Binding(
-                                            get: { max(viewModel.rewardDraft?.sssPointCost ?? draft.sssPointCost, RewardDefinition.minimumSSSPointCost) },
+                                            get: {
+                                                max(
+                                                    viewModel.rewardDraft?.sssPointCost ?? draft.sssPointCost,
+                                                    RewardDefinition.minimumSSSPointCost
+                                                )
+                                            },
                                             set: {
                                                 guard var current = viewModel.rewardDraft else { return }
                                                 current.sssPointCost = max($0, RewardDefinition.minimumSSSPointCost)
@@ -3543,7 +3618,14 @@ struct TopOneRootView: View {
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 7)
-                                .background(LinearGradient(colors: [PrototypeColors.primary, PrototypeColors.primaryContainer], startPoint: .leading, endPoint: .trailing), in: Capsule())
+                                .background(
+                                    LinearGradient(
+                                        colors: [PrototypeColors.primary, PrototypeColors.primaryContainer],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    ),
+                                    in: Capsule()
+                                )
 
                             ZStack {
                                 Circle()
