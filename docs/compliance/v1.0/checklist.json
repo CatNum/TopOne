@@ -13,18 +13,18 @@
   },
   "items": [
     {
-      "item": "skill（.agent/skills/）：团队 SOP 固化",
+      "item": "skill：OpenSkills / Cursor 全局技能",
       "category": "AI 原生协作工具",
       "check_stage": "初始化基线",
       "required_level": "required",
       "adoption_status": "pass",
-      "exception_reason": "",
+      "exception_reason": "仓库不内置 .agent/skills/，在 AGENTS.md 中约定使用全局技能。",
       "evidence": [
-        ".agent/skills/"
+        "AGENTS.md"
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11 18:24:51"
+      "updated_at": "2026-05-03T00:00:00Z"
     },
     {
       "item": "MCP：工具连接层",
@@ -57,18 +57,15 @@
       "category": "AI 原生协作工具",
       "check_stage": "初始化基线",
       "required_level": "required",
-      "adoption_status": "pass",
-      "exception_reason": "",
-      "evidence": [
-        ".agent/skills/",
-        ".github/workflows/sync-skills-to-upstream.yml"
-      ],
+      "adoption_status": "waived",
+      "exception_reason": "技能在全局（或独立技能仓）维护；本仓库已移除 .agent/skills 与 sync-skills-to-upstream 工作流。",
+      "evidence": [],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11 18:36:22"
+      "updated_at": "2026-05-03T00:00:00Z"
     },
     {
-      "item": "AGENTS.md：代理入口（与 skills 目录配套）",
+      "item": "AGENTS.md：代理入口（全局技能说明）",
       "category": "AI 原生协作工具",
       "check_stage": "初始化基线",
       "required_level": "required",
@@ -79,7 +76,7 @@
       ],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11 18:24:51"
+      "updated_at": "2026-05-03T00:00:00Z"
     },
     {
       "item": "AI 编码助手",
@@ -330,14 +327,12 @@
       "category": "仓库结构",
       "check_stage": "初始化基线",
       "required_level": "required",
-      "adoption_status": "pass",
-      "exception_reason": "",
-      "evidence": [
-        ".agent/skills/"
-      ],
+      "adoption_status": "waived",
+      "exception_reason": "已改为全局技能，不再要求仓库内该路径。",
+      "evidence": [],
       "owner": "",
       "next_action": "",
-      "updated_at": "2026-04-11 18:24:51"
+      "updated_at": "2026-05-03T00:00:00Z"
     },
     {
       "item": "路径存在: standards/",
